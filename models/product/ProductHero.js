@@ -1,18 +1,18 @@
 import mongoose from 'mongoose';
 
-// Model for AnalFistulaHero component
-const AnalFistulaHeroSchema = new mongoose.Schema({
+// Model for ProductHero component
+const ProductHeroSchema = new mongoose.Schema({
   backgroundImage: {
     type: String,
     default: '',
   },
   title: {
     type: String,
-    default: 'Anal Fistula',
+    default: 'Find the Right Supplements for Your Lifestyle',
   },
   description: {
     type: String,
-    default: '',
+    default: 'Explore a curated range of wellness products designed to boost energy, immunity, and overall health.',
   },
   buttonText: {
     type: String,
@@ -23,7 +23,7 @@ const AnalFistulaHeroSchema = new mongoose.Schema({
 });
 
 // Ensure only one document exists (singleton pattern)
-AnalFistulaHeroSchema.statics.getSingleton = async function() {
+ProductHeroSchema.statics.getSingleton = async function() {
   let doc = await this.findOne();
   if (!doc) {
     doc = await this.create({});
@@ -31,7 +31,7 @@ AnalFistulaHeroSchema.statics.getSingleton = async function() {
   return doc;
 };
 
-const AnalFistulaHero = mongoose.model('AnalFistulaHero', AnalFistulaHeroSchema);
+const ProductHero = mongoose.model('ProductHero', ProductHeroSchema);
 
-export default AnalFistulaHero;
+export default ProductHero;
 

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 // Model for FrequentlyQA component - matches exact field names from FrequentlyQA.jsx
-const AskedQuestionsComponentSchema = new mongoose.Schema({
+const HomeAskedQuestionsComponentSchema = new mongoose.Schema({
   componentHeading: {
     type: String,
     default: '',
@@ -20,7 +20,7 @@ const AskedQuestionsComponentSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-AskedQuestionsComponentSchema.statics.getSingleton = async function() {
+HomeAskedQuestionsComponentSchema.statics.getSingleton = async function() {
   let doc = await this.findOne();
   if (!doc) {
     doc = await this.create({});
@@ -28,7 +28,7 @@ AskedQuestionsComponentSchema.statics.getSingleton = async function() {
   return doc;
 };
 
-const AskedQuestionsComponent = mongoose.model('AskedQuestionsComponent', AskedQuestionsComponentSchema);
+const HomeAskedQuestionsComponent = mongoose.model('HomeAskedQuestionsComponent', HomeAskedQuestionsComponentSchema);
 
-export default AskedQuestionsComponent;
+export default HomeAskedQuestionsComponent;
 

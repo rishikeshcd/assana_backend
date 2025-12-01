@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 // Model for PatientSays component - matches exact field names from PatientSays.jsx
-const PatientFeedbackComponentSchema = new mongoose.Schema({
+const HomePatientFeedbackComponentSchema = new mongoose.Schema({
   componentHeading: {
     type: String,
     default: '',
@@ -32,7 +32,7 @@ const PatientFeedbackComponentSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-PatientFeedbackComponentSchema.statics.getSingleton = async function() {
+HomePatientFeedbackComponentSchema.statics.getSingleton = async function() {
   let doc = await this.findOne();
   if (!doc) {
     doc = await this.create({});
@@ -40,7 +40,7 @@ PatientFeedbackComponentSchema.statics.getSingleton = async function() {
   return doc;
 };
 
-const PatientFeedbackComponent = mongoose.model('PatientFeedbackComponent', PatientFeedbackComponentSchema);
+const HomePatientFeedbackComponent = mongoose.model('HomePatientFeedbackComponent', HomePatientFeedbackComponentSchema);
 
-export default PatientFeedbackComponent;
+export default HomePatientFeedbackComponent;
 

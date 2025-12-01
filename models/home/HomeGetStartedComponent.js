@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 // Model for TryDemo component - matches exact field names from TryDemo.jsx
-const GetStartedComponentSchema = new mongoose.Schema({
+const HomeGetStartedComponentSchema = new mongoose.Schema({
   Heading: {
     type: String,
     default: '',
@@ -18,7 +18,7 @@ const GetStartedComponentSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-GetStartedComponentSchema.statics.getSingleton = async function() {
+HomeGetStartedComponentSchema.statics.getSingleton = async function() {
   let doc = await this.findOne();
   if (!doc) {
     doc = await this.create({});
@@ -26,7 +26,7 @@ GetStartedComponentSchema.statics.getSingleton = async function() {
   return doc;
 };
 
-const GetStartedComponent = mongoose.model('GetStartedComponent', GetStartedComponentSchema);
+const HomeGetStartedComponent = mongoose.model('HomeGetStartedComponent', HomeGetStartedComponentSchema);
 
-export default GetStartedComponent;
+export default HomeGetStartedComponent;
 

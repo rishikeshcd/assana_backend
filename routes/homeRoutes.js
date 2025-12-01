@@ -1,12 +1,12 @@
 import express from 'express';
-import HomeBanner from '../models/HomeBanner.js';
-import HomeDropdown from '../models/HomeDropdown.js';
-import HomeWhyAssana from '../models/HomeWhyAssana.js';
-import HomeServices from '../models/HomeServices.js';
-import Video from '../models/Video.js';
-import PatientFeedbackComponent from '../models/PatientFeedbackComponent.js';
-import AskedQuestionsComponent from '../models/AskedQuestionsComponent.js';
-import GetStartedComponent from '../models/GetStartedComponent.js';
+import HomeBanner from '../models/home/HomeBanner.js';
+import HomeDropdown from '../models/home/HomeDropdown.js';
+import HomeWhyAssana from '../models/home/HomeWhyAssana.js';
+import HomeServices from '../models/home/HomeServices.js';
+import HomeVideo from '../models/home/HomeVideo.js';
+import HomePatientFeedbackComponent from '../models/home/HomePatientFeedbackComponent.js';
+import HomeAskedQuestionsComponent from '../models/home/HomeAskedQuestionsComponent.js';
+import HomeGetStartedComponent from '../models/home/HomeGetStartedComponent.js';
 
 const router = express.Router();
 
@@ -228,7 +228,7 @@ router.put('/services-component', async (req, res) => {
 // GET /api/home/video
 router.get('/video', async (req, res) => {
   try {
-    const video = await Video.getSingleton();
+    const video = await HomeVideo.getSingleton();
     res.json(video);
   } catch (error) {
     console.error('Error fetching video:', error);
@@ -239,7 +239,7 @@ router.get('/video', async (req, res) => {
 // PUT /api/home/video
 router.put('/video', async (req, res) => {
   try {
-    const video = await Video.getSingleton();
+    const video = await HomeVideo.getSingleton();
     
     if (req.body.Heading !== undefined) video.Heading = sanitizeString(req.body.Heading);
     if (req.body.subHeading !== undefined) video.subHeading = sanitizeString(req.body.subHeading);
@@ -257,7 +257,7 @@ router.put('/video', async (req, res) => {
 // GET /api/home/patient-feedback
 router.get('/patient-feedback', async (req, res) => {
   try {
-    const patientFeedback = await PatientFeedbackComponent.getSingleton();
+    const patientFeedback = await HomePatientFeedbackComponent.getSingleton();
     res.json(patientFeedback);
   } catch (error) {
     console.error('Error fetching patient feedback:', error);
@@ -268,7 +268,7 @@ router.get('/patient-feedback', async (req, res) => {
 // PUT /api/home/patient-feedback
 router.put('/patient-feedback', async (req, res) => {
   try {
-    const patientFeedback = await PatientFeedbackComponent.getSingleton();
+    const patientFeedback = await HomePatientFeedbackComponent.getSingleton();
     
     if (req.body.componentHeading !== undefined) patientFeedback.componentHeading = sanitizeString(req.body.componentHeading);
     if (req.body.componentSubHeading !== undefined) patientFeedback.componentSubHeading = sanitizeString(req.body.componentSubHeading);
@@ -293,7 +293,7 @@ router.put('/patient-feedback', async (req, res) => {
 // GET /api/home/asked-questions
 router.get('/asked-questions', async (req, res) => {
   try {
-    const askedQuestions = await AskedQuestionsComponent.getSingleton();
+    const askedQuestions = await HomeAskedQuestionsComponent.getSingleton();
     res.json(askedQuestions);
   } catch (error) {
     console.error('Error fetching asked questions:', error);
@@ -304,7 +304,7 @@ router.get('/asked-questions', async (req, res) => {
 // PUT /api/home/asked-questions
 router.put('/asked-questions', async (req, res) => {
   try {
-    const askedQuestions = await AskedQuestionsComponent.getSingleton();
+    const askedQuestions = await HomeAskedQuestionsComponent.getSingleton();
     
     if (req.body.componentHeading !== undefined) askedQuestions.componentHeading = sanitizeString(req.body.componentHeading);
     if (req.body.faqs !== undefined && Array.isArray(req.body.faqs)) {
@@ -326,7 +326,7 @@ router.put('/asked-questions', async (req, res) => {
 // GET /api/home/get-started
 router.get('/get-started', async (req, res) => {
   try {
-    const getStarted = await GetStartedComponent.getSingleton();
+    const getStarted = await HomeGetStartedComponent.getSingleton();
     res.json(getStarted);
   } catch (error) {
     console.error('Error fetching get started:', error);
@@ -337,7 +337,7 @@ router.get('/get-started', async (req, res) => {
 // PUT /api/home/get-started
 router.put('/get-started', async (req, res) => {
   try {
-    const getStarted = await GetStartedComponent.getSingleton();
+    const getStarted = await HomeGetStartedComponent.getSingleton();
     
     if (req.body.Heading !== undefined) getStarted.Heading = sanitizeString(req.body.Heading);
     if (req.body.subHeading !== undefined) getStarted.subHeading = sanitizeString(req.body.subHeading);

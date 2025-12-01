@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 // Model for Healing component - matches exact field names from Healing.jsx
-const VideoSchema = new mongoose.Schema({
+const HomeVideoSchema = new mongoose.Schema({
   Heading: {
     type: String,
     default: '',
@@ -18,7 +18,7 @@ const VideoSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-VideoSchema.statics.getSingleton = async function() {
+HomeVideoSchema.statics.getSingleton = async function() {
   let doc = await this.findOne();
   if (!doc) {
     doc = await this.create({});
@@ -26,7 +26,7 @@ VideoSchema.statics.getSingleton = async function() {
   return doc;
 };
 
-const Video = mongoose.model('Video', VideoSchema);
+const HomeVideo = mongoose.model('HomeVideo', HomeVideoSchema);
 
-export default Video;
+export default HomeVideo;
 

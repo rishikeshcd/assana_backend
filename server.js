@@ -10,6 +10,10 @@ import servicesRoutes from './routes/servicesRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import analFistulaRoutes from './routes/analFistulaRoutes.js';
+import pelvicFloorRoutes from './routes/pelvicFloorRoutes.js';
+import pilesRoutes from './routes/pilesRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+import commonRoutes from './routes/commonRoutes.js';
 
 dotenv.config();
 
@@ -32,6 +36,10 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/anal-fistula', analFistulaRoutes);
+app.use('/api/pelvic-floor', pelvicFloorRoutes);
+app.use('/api/piles', pilesRoutes);
+app.use('/api/product', productRoutes);
+app.use('/api/common', commonRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -1,6 +1,6 @@
 import express from 'express';
-import AnalFistulaHero from '../models/anal_fistula/AnalFistulaHero.js';
-import AnalFistulaMain from '../models/anal_fistula/AnalFistulaMain.js';
+import PelvicFloorHero from '../models/pelvic_floor/PelvicFloorHero.js';
+import PelvicFloorMain from '../models/pelvic_floor/PelvicFloorMain.js';
 
 const router = express.Router();
 
@@ -10,26 +10,26 @@ const sanitizeString = (str) => {
   return str.trim();
 };
 
-// ==================== ANAL FISTULA HERO ====================
-// GET /api/anal-fistula/hero
+// ==================== PELVIC FLOOR HERO ====================
+// GET /api/pelvic-floor/hero
 router.get('/hero', async (req, res) => {
   try {
-    const hero = await AnalFistulaHero.getSingleton();
+    const hero = await PelvicFloorHero.getSingleton();
     res.json(hero);
   } catch (error) {
-    console.error('Error fetching anal fistula hero:', error);
+    console.error('Error fetching pelvic floor hero:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch anal fistula hero',
+      error: 'Failed to fetch pelvic floor hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/anal-fistula/hero
+// PUT /api/pelvic-floor/hero
 router.put('/hero', async (req, res) => {
   try {
-    const hero = await AnalFistulaHero.getSingleton();
+    const hero = await PelvicFloorHero.getSingleton();
     
     // Update fields (sanitize strings)
     if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
@@ -40,35 +40,35 @@ router.put('/hero', async (req, res) => {
     await hero.save();
     res.json(hero);
   } catch (error) {
-    console.error('Error updating anal fistula hero:', error);
+    console.error('Error updating pelvic floor hero:', error);
     res.status(500).json({ 
-      error: 'Failed to update anal fistula hero',
+      error: 'Failed to update pelvic floor hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// ==================== ANAL FISTULA MAIN ====================
-// GET /api/anal-fistula/main
+// ==================== PELVIC FLOOR MAIN ====================
+// GET /api/pelvic-floor/main
 router.get('/main', async (req, res) => {
   try {
-    const main = await AnalFistulaMain.getSingleton();
+    const main = await PelvicFloorMain.getSingleton();
     res.json(main);
   } catch (error) {
-    console.error('Error fetching anal fistula main:', error);
+    console.error('Error fetching pelvic floor main:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch anal fistula main',
+      error: 'Failed to fetch pelvic floor main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/anal-fistula/main
+// PUT /api/pelvic-floor/main
 router.put('/main', async (req, res) => {
   try {
-    const main = await AnalFistulaMain.getSingleton();
+    const main = await PelvicFloorMain.getSingleton();
     
     // Update sections array
     if (req.body.sections !== undefined && Array.isArray(req.body.sections)) {
@@ -76,31 +76,23 @@ router.put('/main', async (req, res) => {
         title: sanitizeString(section.title || ''),
         image: sanitizeString(section.image || ''),
         imageAlt: sanitizeString(section.imageAlt || ''),
-        items: Array.isArray(section.items) 
-          ? section.items.map(item => sanitizeString(item || ''))
+        whatIsItHeading: sanitizeString(section.whatIsItHeading || 'What is it?'),
+        whatIsIt: sanitizeString(section.whatIsIt || ''),
+        howCanHelpHeading: sanitizeString(section.howCanHelpHeading || 'How Azura Can Help'),
+        howCanHelp: sanitizeString(section.howCanHelp || ''),
+        symptomsHeading: sanitizeString(section.symptomsHeading || 'Symptoms'),
+        symptoms: Array.isArray(section.symptoms) 
+          ? section.symptoms.map(symptom => sanitizeString(symptom || ''))
           : [],
       }));
-    }
-    
-    // Update conclusion
-    if (req.body.conclusion !== undefined) {
-      if (req.body.conclusion.title !== undefined) {
-        main.conclusion.title = sanitizeString(req.body.conclusion.title);
-      }
-      if (req.body.conclusion.description !== undefined) {
-        main.conclusion.description = sanitizeString(req.body.conclusion.description);
-      }
-      if (req.body.conclusion.buttonText !== undefined) {
-        main.conclusion.buttonText = sanitizeString(req.body.conclusion.buttonText);
-      }
     }
     
     await main.save();
     res.json(main);
   } catch (error) {
-    console.error('Error updating anal fistula main:', error);
+    console.error('Error updating pelvic floor main:', error);
     res.status(500).json({ 
-      error: 'Failed to update anal fistula main',
+      error: 'Failed to update pelvic floor main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
@@ -108,6 +100,4 @@ router.put('/main', async (req, res) => {
 });
 
 export default router;
-
-
 

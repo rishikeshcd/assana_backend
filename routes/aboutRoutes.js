@@ -1,9 +1,9 @@
 import express from 'express';
-import AboutHero from '../models/AboutHero.js';
-import AboutMission from '../models/AboutMission.js';
-import AboutWhyChoose from '../models/AboutWhyChoose.js';
-import AboutMissionVision from '../models/AboutMissionVision.js';
-import AboutTeam from '../models/AboutTeam.js';
+import AboutHero from '../models/about/AboutHero.js';
+import AboutMission from '../models/about/AboutMission.js';
+import AboutWhyChoose from '../models/about/AboutWhyChoose.js';
+import AboutMissionVision from '../models/about/AboutMissionVision.js';
+import AboutTeam from '../models/about/AboutTeam.js';
 
 const router = express.Router();
 
