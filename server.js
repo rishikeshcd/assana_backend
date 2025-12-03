@@ -14,11 +14,13 @@ import servicesRoutes from './routes/servicesRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import analFistulaRoutes from './routes/analFistulaRoutes.js';
+import pilesRoutes from './routes/pilesRoutes.js';
 import pelvicFloorRoutes from './routes/pelvicFloorRoutes.js';
 import bandingPilesRoutes from './routes/bandingPilesRoutes.js';
 import colorectalSymptomsRoutes from './routes/colorectalSymptomsRoutes.js';
 import colonRectalCancerRoutes from './routes/colonRectalCancerRoutes.js';
 import laserSurgeryRoutes from './routes/laserSurgeryRoutes.js';
+import analWoundCareRoutes from './routes/analWoundCareRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import commonRoutes from './routes/commonRoutes.js';
 
@@ -38,11 +40,13 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/anal-fistula', analFistulaRoutes);
+app.use('/api/piles', pilesRoutes);
 app.use('/api/pelvic-floor', pelvicFloorRoutes);
 app.use('/api/banding-piles', bandingPilesRoutes);
 app.use('/api/colorectal-symptoms', colorectalSymptomsRoutes);
 app.use('/api/colon-rectal-cancer', colonRectalCancerRoutes);
 app.use('/api/laser-surgery', laserSurgeryRoutes);
+app.use('/api/anal-wound-care', analWoundCareRoutes);
 app.use('/api/product', productRoutes);
 app.use('/api/common', commonRoutes);
 
