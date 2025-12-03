@@ -14,6 +14,14 @@ const HomeGetStartedComponentSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  button1Text: {
+    type: String,
+    default: 'Start Free Symptom Check',
+  },
+  button2Text: {
+    type: String,
+    default: 'Get Started',
+  },
 }, {
   timestamps: true,
 });

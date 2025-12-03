@@ -342,6 +342,8 @@ router.put('/get-started', async (req, res) => {
     if (req.body.Heading !== undefined) getStarted.Heading = sanitizeString(req.body.Heading);
     if (req.body.subHeading !== undefined) getStarted.subHeading = sanitizeString(req.body.subHeading);
     if (req.body.backgroundImage !== undefined) getStarted.backgroundImage = sanitizeString(req.body.backgroundImage);
+    if (req.body.button1Text !== undefined) getStarted.button1Text = sanitizeString(req.body.button1Text);
+    if (req.body.button2Text !== undefined) getStarted.button2Text = sanitizeString(req.body.button2Text);
     
     await getStarted.save();
     res.json(getStarted);
