@@ -1,6 +1,6 @@
 import express from 'express';
-import PilesHero from '../models/piles/PilesHero.js';
-import PilesContent from '../models/piles/PilesContent.js';
+import BandingPilesHero from '../models/banding_piles/BandingPilesHero.js';
+import BandingPilesContent from '../models/banding_piles/BandingPilesContent.js';
 
 const router = express.Router();
 
@@ -10,26 +10,26 @@ const sanitizeString = (str) => {
   return str.trim();
 };
 
-// ==================== PILES HERO ====================
-// GET /api/piles/hero
+// ==================== BANDING PILES HERO ====================
+// GET /api/banding-piles/hero
 router.get('/hero', async (req, res) => {
   try {
-    const hero = await PilesHero.getSingleton();
+    const hero = await BandingPilesHero.getSingleton();
     res.json(hero);
   } catch (error) {
-    console.error('Error fetching piles hero:', error);
+    console.error('Error fetching banding piles hero:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch piles hero',
+      error: 'Failed to fetch banding piles hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/piles/hero
+// PUT /api/banding-piles/hero
 router.put('/hero', async (req, res) => {
   try {
-    const hero = await PilesHero.getSingleton();
+    const hero = await BandingPilesHero.getSingleton();
     
     // Update fields (sanitize strings)
     if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
@@ -40,35 +40,35 @@ router.put('/hero', async (req, res) => {
     await hero.save();
     res.json(hero);
   } catch (error) {
-    console.error('Error updating piles hero:', error);
+    console.error('Error updating banding piles hero:', error);
     res.status(500).json({ 
-      error: 'Failed to update piles hero',
+      error: 'Failed to update banding piles hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// ==================== PILES CONTENT ====================
-// GET /api/piles/content
+// ==================== BANDING PILES CONTENT ====================
+// GET /api/banding-piles/content
 router.get('/content', async (req, res) => {
   try {
-    const content = await PilesContent.getSingleton();
+    const content = await BandingPilesContent.getSingleton();
     res.json(content);
   } catch (error) {
-    console.error('Error fetching piles content:', error);
+    console.error('Error fetching banding piles content:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch piles content',
+      error: 'Failed to fetch banding piles content',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/piles/content
+// PUT /api/banding-piles/content
 router.put('/content', async (req, res) => {
   try {
-    const content = await PilesContent.getSingleton();
+    const content = await BandingPilesContent.getSingleton();
     
     // Update main title
     if (req.body.mainTitle !== undefined) {
@@ -126,9 +126,9 @@ router.put('/content', async (req, res) => {
     await content.save();
     res.json(content);
   } catch (error) {
-    console.error('Error updating piles content:', error);
+    console.error('Error updating banding piles content:', error);
     res.status(500).json({ 
-      error: 'Failed to update piles content',
+      error: 'Failed to update banding piles content',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });

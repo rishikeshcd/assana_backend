@@ -1,50 +1,68 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 const router = express.Router();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Validate Cloudinary configuration
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+if (!cloudName || !apiKey || !apiSecret) {
+  console.error('❌ Cloudinary configuration missing!');
+  console.error('   Required environment variables:');
+  console.error('   - CLOUDINARY_CLOUD_NAME');
+  console.error('   - CLOUDINARY_API_KEY');
+  console.error('   - CLOUDINARY_API_SECRET');
+  console.error('   Please check your .env file or environment variables.');
+  throw new Error('Cloudinary configuration is required. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
 }
 
-// Configure multer for local storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename: timestamp-originalname
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: cloudName,
+  api_key: apiKey,
+  api_secret: apiSecret,
+});
+
+console.log(`✅ Cloudinary configured: ${cloudName}`);
+
+// Configure Cloudinary storage for multer
+const cloudinaryStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    // Generate unique filename
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext);
-    cb(null, `${name}-${uniqueSuffix}${ext}`);
+    const name = path.basename(file.originalname, ext).replace(/\s+/g, '-');
+    
+    return {
+      folder: process.env.CLOUDINARY_FOLDER || 'assana-uploads',
+      public_id: `${name}-${uniqueSuffix}`,
+      format: ext.slice(1) || 'jpg', // Remove the dot from extension
+      resource_type: 'image',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    };
   },
 });
 
-// File filter: only allow images
-const fileFilter = (req, file, cb) => {
-  const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-  if (allowedMimes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only image files (JPEG, PNG, GIF, WEBP) are allowed.'), false);
-  }
-};
-
-// Configure multer with limits and file filter
+// Configure multer with Cloudinary storage
 const upload = multer({
-  storage: storage,
+  storage: cloudinaryStorage,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB max file size
   },
-  fileFilter: fileFilter,
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only image files (JPEG, PNG, GIF, WEBP) are allowed.'), false);
+    }
+  },
 });
 
 // POST /api/uploads - Upload a single image file
@@ -54,17 +72,32 @@ router.post('/', upload.single('file'), (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Get the base URL from request (for local development and production)
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+    // multer-storage-cloudinary stores the URL in req.file.path
+    // It can also be in secure_url, url, or we can construct it from public_id
+    let fileUrl = req.file.path || req.file.secure_url || req.file.url;
+    
+    // If still no URL, construct it from public_id
+    if (!fileUrl && req.file.public_id) {
+      const folder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
+      fileUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${folder}/${req.file.public_id}.${req.file.format || 'jpg'}`;
+    }
 
-    res.json({
+    if (!fileUrl) {
+      console.error('❌ Cloudinary upload response:', JSON.stringify(req.file, null, 2));
+      return res.status(500).json({ error: 'Failed to get file URL from Cloudinary' });
+    }
+
+    const responseData = {
       url: fileUrl,
-      filename: req.file.filename,
+      filename: req.file.public_id || req.file.filename,
       originalName: req.file.originalname,
-      size: req.file.size,
-    });
+      size: req.file.bytes || req.file.size,
+      storage: 'cloudinary',
+      publicId: req.file.public_id,
+    };
+
+    console.log(`✅ File uploaded successfully to Cloudinary: ${fileUrl}`);
+    res.json(responseData);
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ error: 'Failed to upload file', message: error.message });
@@ -84,37 +117,6 @@ router.use((error, req, res, next) => {
   }
   next();
 });
-
-/* 
-  CLOUDINARY ALTERNATIVE (Optional - uncomment and configure when ready)
-  
-  import cloudinary from 'cloudinary';
-  import { CloudinaryStorage } from 'multer-storage-cloudinary';
-  
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-  
-  const cloudinaryStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-      folder: 'assaana-uploads',
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-    },
-  });
-  
-  const upload = multer({
-    storage: cloudinaryStorage,
-    limits: {
-      fileSize: 5 * 1024 * 1024,
-    },
-  });
-  
-  // Then in the route handler, use req.file.path instead of constructing URL
-  // res.json({ url: req.file.path, ... });
-*/
 
 export default router;
 

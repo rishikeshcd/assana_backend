@@ -1,6 +1,6 @@
 import express from 'express';
-import PelvicFloorHero from '../models/pelvic_floor/PelvicFloorHero.js';
-import PelvicFloorMain from '../models/pelvic_floor/PelvicFloorMain.js';
+import ColonRectalCancerHero from '../models/colon_rectal_cancer/ColonRectalCancerHero.js';
+import ColonRectalCancerMain from '../models/colon_rectal_cancer/ColonRectalCancerMain.js';
 
 const router = express.Router();
 
@@ -10,26 +10,26 @@ const sanitizeString = (str) => {
   return str.trim();
 };
 
-// ==================== PELVIC FLOOR HERO ====================
-// GET /api/pelvic-floor/hero
+// ==================== COLON RECTAL CANCER HERO ====================
+// GET /api/colon-rectal-cancer/hero
 router.get('/hero', async (req, res) => {
   try {
-    const hero = await PelvicFloorHero.getSingleton();
+    const hero = await ColonRectalCancerHero.getSingleton();
     res.json(hero);
   } catch (error) {
-    console.error('Error fetching pelvic floor hero:', error);
+    console.error('Error fetching colon rectal cancer hero:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch pelvic floor hero',
+      error: 'Failed to fetch colon rectal cancer hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/pelvic-floor/hero
+// PUT /api/colon-rectal-cancer/hero
 router.put('/hero', async (req, res) => {
   try {
-    const hero = await PelvicFloorHero.getSingleton();
+    const hero = await ColonRectalCancerHero.getSingleton();
     
     // Update fields (sanitize strings)
     if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
@@ -40,35 +40,35 @@ router.put('/hero', async (req, res) => {
     await hero.save();
     res.json(hero);
   } catch (error) {
-    console.error('Error updating pelvic floor hero:', error);
+    console.error('Error updating colon rectal cancer hero:', error);
     res.status(500).json({ 
-      error: 'Failed to update pelvic floor hero',
+      error: 'Failed to update colon rectal cancer hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// ==================== PELVIC FLOOR MAIN ====================
-// GET /api/pelvic-floor/main
+// ==================== COLON RECTAL CANCER MAIN ====================
+// GET /api/colon-rectal-cancer/main
 router.get('/main', async (req, res) => {
   try {
-    const main = await PelvicFloorMain.getSingleton();
+    const main = await ColonRectalCancerMain.getSingleton();
     res.json(main);
   } catch (error) {
-    console.error('Error fetching pelvic floor main:', error);
+    console.error('Error fetching colon rectal cancer main:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch pelvic floor main',
+      error: 'Failed to fetch colon rectal cancer main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/pelvic-floor/main
+// PUT /api/colon-rectal-cancer/main
 router.put('/main', async (req, res) => {
   try {
-    const main = await PelvicFloorMain.getSingleton();
+    const main = await ColonRectalCancerMain.getSingleton();
     
     // Update sections array
     if (req.body.sections !== undefined && Array.isArray(req.body.sections)) {
@@ -77,13 +77,9 @@ router.put('/main', async (req, res) => {
         image: sanitizeString(section.image || ''),
         imageAlt: sanitizeString(section.imageAlt || ''),
         imageTitle: sanitizeString(section.imageTitle || ''),
-        whatIsItHeading: sanitizeString(section.whatIsItHeading || 'What is it?'),
-        whatIsIt: sanitizeString(section.whatIsIt || ''),
-        howCanHelpHeading: sanitizeString(section.howCanHelpHeading || 'How Azura Can Help'),
-        howCanHelp: sanitizeString(section.howCanHelp || ''),
-        symptomsHeading: sanitizeString(section.symptomsHeading || 'Symptoms'),
-        symptoms: Array.isArray(section.symptoms) 
-          ? section.symptoms.map(symptom => sanitizeString(symptom || ''))
+        description: sanitizeString(section.description || ''),
+        items: Array.isArray(section.items) 
+          ? section.items.map(item => sanitizeString(item || ''))
           : [],
       }));
     }
@@ -91,9 +87,9 @@ router.put('/main', async (req, res) => {
     await main.save();
     res.json(main);
   } catch (error) {
-    console.error('Error updating pelvic floor main:', error);
+    console.error('Error updating colon rectal cancer main:', error);
     res.status(500).json({ 
-      error: 'Failed to update pelvic floor main',
+      error: 'Failed to update colon rectal cancer main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
@@ -101,4 +97,5 @@ router.put('/main', async (req, res) => {
 });
 
 export default router;
+
 

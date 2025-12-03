@@ -76,6 +76,7 @@ router.put('/main', async (req, res) => {
         title: sanitizeString(section.title || ''),
         image: sanitizeString(section.image || ''),
         imageAlt: sanitizeString(section.imageAlt || ''),
+        imageTitle: sanitizeString(section.imageTitle || ''),
         items: Array.isArray(section.items) 
           ? section.items.map(item => sanitizeString(item || ''))
           : [],

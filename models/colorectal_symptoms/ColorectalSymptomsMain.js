@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
-// Model for PelvicFloorMain component
-const PelvicFloorMainSchema = new mongoose.Schema({
+// Model for ColorectalSymptomsMain component
+const ColorectalSymptomsMainSchema = new mongoose.Schema({
   sections: [{
     title: {
       type: String,
@@ -49,7 +49,7 @@ const PelvicFloorMainSchema = new mongoose.Schema({
 });
 
 // Ensure only one document exists (singleton pattern)
-PelvicFloorMainSchema.statics.getSingleton = async function() {
+ColorectalSymptomsMainSchema.statics.getSingleton = async function() {
   let doc = await this.findOne();
   if (!doc) {
     doc = await this.create({
@@ -59,7 +59,7 @@ PelvicFloorMainSchema.statics.getSingleton = async function() {
   return doc;
 };
 
-const PelvicFloorMain = mongoose.model('PelvicFloorMain', PelvicFloorMainSchema);
+const ColorectalSymptomsMain = mongoose.model('ColorectalSymptomsMain', ColorectalSymptomsMainSchema);
 
-export default PelvicFloorMain;
+export default ColorectalSymptomsMain;
 

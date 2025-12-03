@@ -1,6 +1,6 @@
 import express from 'express';
-import PelvicFloorHero from '../models/pelvic_floor/PelvicFloorHero.js';
-import PelvicFloorMain from '../models/pelvic_floor/PelvicFloorMain.js';
+import ColorectalSymptomsHero from '../models/colorectal_symptoms/ColorectalSymptomsHero.js';
+import ColorectalSymptomsMain from '../models/colorectal_symptoms/ColorectalSymptomsMain.js';
 
 const router = express.Router();
 
@@ -10,26 +10,26 @@ const sanitizeString = (str) => {
   return str.trim();
 };
 
-// ==================== PELVIC FLOOR HERO ====================
-// GET /api/pelvic-floor/hero
+// ==================== COLORECTAL SYMPTOMS HERO ====================
+// GET /api/colorectal-symptoms/hero
 router.get('/hero', async (req, res) => {
   try {
-    const hero = await PelvicFloorHero.getSingleton();
+    const hero = await ColorectalSymptomsHero.getSingleton();
     res.json(hero);
   } catch (error) {
-    console.error('Error fetching pelvic floor hero:', error);
+    console.error('Error fetching colorectal symptoms hero:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch pelvic floor hero',
+      error: 'Failed to fetch colorectal symptoms hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/pelvic-floor/hero
+// PUT /api/colorectal-symptoms/hero
 router.put('/hero', async (req, res) => {
   try {
-    const hero = await PelvicFloorHero.getSingleton();
+    const hero = await ColorectalSymptomsHero.getSingleton();
     
     // Update fields (sanitize strings)
     if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
@@ -40,35 +40,35 @@ router.put('/hero', async (req, res) => {
     await hero.save();
     res.json(hero);
   } catch (error) {
-    console.error('Error updating pelvic floor hero:', error);
+    console.error('Error updating colorectal symptoms hero:', error);
     res.status(500).json({ 
-      error: 'Failed to update pelvic floor hero',
+      error: 'Failed to update colorectal symptoms hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// ==================== PELVIC FLOOR MAIN ====================
-// GET /api/pelvic-floor/main
+// ==================== COLORECTAL SYMPTOMS MAIN ====================
+// GET /api/colorectal-symptoms/main
 router.get('/main', async (req, res) => {
   try {
-    const main = await PelvicFloorMain.getSingleton();
+    const main = await ColorectalSymptomsMain.getSingleton();
     res.json(main);
   } catch (error) {
-    console.error('Error fetching pelvic floor main:', error);
+    console.error('Error fetching colorectal symptoms main:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch pelvic floor main',
+      error: 'Failed to fetch colorectal symptoms main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/pelvic-floor/main
+// PUT /api/colorectal-symptoms/main
 router.put('/main', async (req, res) => {
   try {
-    const main = await PelvicFloorMain.getSingleton();
+    const main = await ColorectalSymptomsMain.getSingleton();
     
     // Update sections array
     if (req.body.sections !== undefined && Array.isArray(req.body.sections)) {
@@ -91,9 +91,9 @@ router.put('/main', async (req, res) => {
     await main.save();
     res.json(main);
   } catch (error) {
-    console.error('Error updating pelvic floor main:', error);
+    console.error('Error updating colorectal symptoms main:', error);
     res.status(500).json({ 
-      error: 'Failed to update pelvic floor main',
+      error: 'Failed to update colorectal symptoms main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });

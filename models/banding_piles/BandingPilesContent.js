@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
-// Model for PilesContent component
-const PilesContentSchema = new mongoose.Schema({
+// Model for BandingPilesContent component
+const BandingPilesContentSchema = new mongoose.Schema({
   mainTitle: {
     type: String,
     default: 'All you need to know..',
@@ -59,7 +59,7 @@ const PilesContentSchema = new mongoose.Schema({
 });
 
 // Ensure only one document exists (singleton pattern)
-PilesContentSchema.statics.getSingleton = async function() {
+BandingPilesContentSchema.statics.getSingleton = async function() {
   let doc = await this.findOne();
   if (!doc) {
     doc = await this.create({
@@ -69,7 +69,7 @@ PilesContentSchema.statics.getSingleton = async function() {
   return doc;
 };
 
-const PilesContent = mongoose.model('PilesContent', PilesContentSchema);
+const BandingPilesContent = mongoose.model('BandingPilesContent', BandingPilesContentSchema);
 
-export default PilesContent;
+export default BandingPilesContent;
 

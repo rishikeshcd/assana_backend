@@ -3,6 +3,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Load environment variables FIRST before importing routes
+dotenv.config();
+
 import connectDB, { checkConnection } from './db.js';
 import homeRoutes from './routes/homeRoutes.js';
 import aboutRoutes from './routes/aboutRoutes.js';
@@ -11,11 +15,12 @@ import contactRoutes from './routes/contactRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import analFistulaRoutes from './routes/analFistulaRoutes.js';
 import pelvicFloorRoutes from './routes/pelvicFloorRoutes.js';
-import pilesRoutes from './routes/pilesRoutes.js';
+import bandingPilesRoutes from './routes/bandingPilesRoutes.js';
+import colorectalSymptomsRoutes from './routes/colorectalSymptomsRoutes.js';
+import colonRectalCancerRoutes from './routes/colonRectalCancerRoutes.js';
+import laserSurgeryRoutes from './routes/laserSurgeryRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import commonRoutes from './routes/commonRoutes.js';
-
-dotenv.config();
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -26,9 +31,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // API Routes
 app.use('/api/home', homeRoutes);
 app.use('/api/about', aboutRoutes);
@@ -37,7 +39,10 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/anal-fistula', analFistulaRoutes);
 app.use('/api/pelvic-floor', pelvicFloorRoutes);
-app.use('/api/piles', pilesRoutes);
+app.use('/api/banding-piles', bandingPilesRoutes);
+app.use('/api/colorectal-symptoms', colorectalSymptomsRoutes);
+app.use('/api/colon-rectal-cancer', colonRectalCancerRoutes);
+app.use('/api/laser-surgery', laserSurgeryRoutes);
 app.use('/api/product', productRoutes);
 app.use('/api/common', commonRoutes);
 
@@ -85,7 +90,7 @@ const startServer = async () => {
       console.log(`   Server running on port ${PORT}`);
       console.log(`   API base URL: http://localhost:${PORT}/api`);
       console.log(`   Health check: http://localhost:${PORT}/api/health`);
-      console.log(`   Uploads served at: http://localhost:${PORT}/uploads`);
+      console.log(`   File storage: Cloudinary`);
       console.log(`   Database status: ${dbStatus.state}\n`);
     });
   } catch (error) {

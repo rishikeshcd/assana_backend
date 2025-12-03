@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
-// Model for AnalFistulaMain component
-const AnalFistulaMainSchema = new mongoose.Schema({
+// Model for ColonRectalCancerMain component
+const ColonRectalCancerMainSchema = new mongoose.Schema({
   sections: [{
     title: {
       type: String,
@@ -19,44 +19,32 @@ const AnalFistulaMainSchema = new mongoose.Schema({
       type: String,
       default: '',
     },
+    description: {
+      type: String,
+      default: '',
+    },
     items: [{
       type: String,
       default: '',
     }],
   }],
-  conclusion: {
-    title: {
-      type: String,
-      default: 'Conclusion',
-    },
-    description: {
-      type: String,
-      default: '',
-    },
-    buttonText: {
-      type: String,
-      default: 'Book a Consultation',
-    },
-  },
 }, {
   timestamps: true,
 });
 
 // Ensure only one document exists (singleton pattern)
-AnalFistulaMainSchema.statics.getSingleton = async function() {
+ColonRectalCancerMainSchema.statics.getSingleton = async function() {
   let doc = await this.findOne();
   if (!doc) {
     doc = await this.create({
       sections: [],
-      conclusion: {},
     });
   }
   return doc;
 };
 
-const AnalFistulaMain = mongoose.model('AnalFistulaMain', AnalFistulaMainSchema);
+const ColonRectalCancerMain = mongoose.model('ColonRectalCancerMain', ColonRectalCancerMainSchema);
 
-export default AnalFistulaMain;
-
+export default ColonRectalCancerMain;
 
 
