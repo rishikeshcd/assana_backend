@@ -24,6 +24,7 @@ import laserSurgeryRoutes from './routes/laserSurgeryRoutes.js';
 import analWoundCareRoutes from './routes/analWoundCareRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import commonRoutes from './routes/commonRoutes.js';
+import gutWellnessRoutes from './routes/gut_wellness/gutWellnessRoutes.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -51,6 +52,7 @@ app.use('/api/laser-surgery', laserSurgeryRoutes);
 app.use('/api/anal-wound-care', analWoundCareRoutes);
 app.use('/api/product', productRoutes);
 app.use('/api/common', commonRoutes);
+app.use('/api/gut-wellness', gutWellnessRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
