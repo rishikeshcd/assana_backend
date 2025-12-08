@@ -1,6 +1,6 @@
 import express from 'express';
-import GutBrainAxisHero from '../../models/gut_wellness/gut_brain_axis/GutBrainAxisHero.js';
-import GutBrainAxisMain from '../../models/gut_wellness/gut_brain_axis/GutBrainAxisMain.js';
+import ColonHydrotherapyHero from '../../models/gut_wellness/colon_hydrotherapy/ColonHydrotherapyHero.js';
+import ColonHydrotherapyMain from '../../models/gut_wellness/colon_hydrotherapy/ColonHydrotherapyMain.js';
 
 const router = express.Router();
 
@@ -10,26 +10,26 @@ const sanitizeString = (str) => {
   return str.trim();
 };
 
-// ==================== GUT BRAIN AXIS HERO ====================
-// GET /api/gut-wellness/gut-brain-axis/hero
+// ==================== COLON HYDROTHERAPY HERO ====================
+// GET /api/gut-wellness/colon-hydrotherapy/hero
 router.get('/hero', async (req, res) => {
   try {
-    const hero = await GutBrainAxisHero.getSingleton();
+    const hero = await ColonHydrotherapyHero.getSingleton();
     res.json(hero);
   } catch (error) {
-    console.error('Error fetching gut brain axis hero:', error);
+    console.error('Error fetching colon hydrotherapy hero:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch gut brain axis hero',
+      error: 'Failed to fetch colon hydrotherapy hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/gut-wellness/gut-brain-axis/hero
+// PUT /api/gut-wellness/colon-hydrotherapy/hero
 router.put('/hero', async (req, res) => {
   try {
-    const hero = await GutBrainAxisHero.getSingleton();
+    const hero = await ColonHydrotherapyHero.getSingleton();
     
     // Update fields (sanitize strings)
     if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
@@ -40,35 +40,35 @@ router.put('/hero', async (req, res) => {
     await hero.save();
     res.json(hero);
   } catch (error) {
-    console.error('Error updating gut brain axis hero:', error);
+    console.error('Error updating colon hydrotherapy hero:', error);
     res.status(500).json({ 
-      error: 'Failed to update gut brain axis hero',
+      error: 'Failed to update colon hydrotherapy hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// ==================== GUT BRAIN AXIS MAIN ====================
-// GET /api/gut-wellness/gut-brain-axis/main
+// ==================== COLON HYDROTHERAPY MAIN ====================
+// GET /api/gut-wellness/colon-hydrotherapy/main
 router.get('/main', async (req, res) => {
   try {
-    const main = await GutBrainAxisMain.getSingleton();
+    const main = await ColonHydrotherapyMain.getSingleton();
     res.json(main);
   } catch (error) {
-    console.error('Error fetching gut brain axis main:', error);
+    console.error('Error fetching colon hydrotherapy main:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch gut brain axis main',
+      error: 'Failed to fetch colon hydrotherapy main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/gut-wellness/gut-brain-axis/main
+// PUT /api/gut-wellness/colon-hydrotherapy/main
 router.put('/main', async (req, res) => {
   try {
-    const main = await GutBrainAxisMain.getSingleton();
+    const main = await ColonHydrotherapyMain.getSingleton();
     
     // Update sections array
     if (req.body.sections !== undefined && Array.isArray(req.body.sections)) {
@@ -93,9 +93,9 @@ router.put('/main', async (req, res) => {
     await main.save();
     res.json(main);
   } catch (error) {
-    console.error('Error updating gut brain axis main:', error);
+    console.error('Error updating colon hydrotherapy main:', error);
     res.status(500).json({ 
-      error: 'Failed to update gut brain axis main',
+      error: 'Failed to update colon hydrotherapy main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });

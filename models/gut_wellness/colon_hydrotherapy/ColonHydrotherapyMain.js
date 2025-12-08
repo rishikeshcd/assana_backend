@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
-// Model for GutBrainAxisMain component
-const GutBrainAxisMainSchema = new mongoose.Schema({
+// Model for ColonHydrotherapyMain component
+const ColonHydrotherapyMainSchema = new mongoose.Schema({
   sections: [{
     title: {
       type: String,
@@ -45,17 +45,21 @@ const GutBrainAxisMainSchema = new mongoose.Schema({
 });
 
 // Ensure only one document exists (singleton pattern)
-GutBrainAxisMainSchema.statics.getSingleton = async function() {
+ColonHydrotherapyMainSchema.statics.getSingleton = async function() {
   let doc = await this.findOne();
   if (!doc) {
     doc = await this.create({
       sections: [],
+      conclusion: {
+        text: '',
+        buttonText: 'Book a Consultation',
+      },
     });
   }
   return doc;
 };
 
-const GutBrainAxisMain = mongoose.model('GutBrainAxisMain', GutBrainAxisMainSchema);
+const ColonHydrotherapyMain = mongoose.model('ColonHydrotherapyMain', ColonHydrotherapyMainSchema);
 
-export default GutBrainAxisMain;
+export default ColonHydrotherapyMain;
 
