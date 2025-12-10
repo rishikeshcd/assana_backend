@@ -1,6 +1,7 @@
 import express from 'express';
 import ProductHero from '../models/product/ProductHero.js';
 import ProductMain from '../models/product/ProductMain.js';
+import { processImageUpdate } from '../utils/cloudinaryHelper.js';
 
 const router = express.Router();
 
@@ -30,9 +31,16 @@ router.get('/hero', async (req, res) => {
 router.put('/hero', async (req, res) => {
   try {
     const hero = await ProductHero.getSingleton();
+    const oldBackgroundImage = hero.backgroundImage;
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
-    // Update fields (sanitize strings)
-    if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
+    // Process background image: move from temp if needed, delete old image
+    if (req.body.backgroundImage !== undefined) {
+      const newBackgroundImage = sanitizeString(req.body.backgroundImage);
+      hero.backgroundImage = await processImageUpdate(newBackgroundImage, oldBackgroundImage, permanentFolder);
+    }
+    
+    // Update other fields (sanitize strings)
     if (req.body.title !== undefined) hero.title = sanitizeString(req.body.title);
     if (req.body.description !== undefined) hero.description = sanitizeString(req.body.description);
     if (req.body.buttonText !== undefined) hero.buttonText = sanitizeString(req.body.buttonText);
@@ -75,16 +83,39 @@ router.put('/main', async (req, res) => {
       main.title = sanitizeString(req.body.title);
     }
     
-    // Update products array
+    // Update products array with image processing
+    const oldProducts = main.products || [];
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     if (req.body.products !== undefined && Array.isArray(req.body.products)) {
-      main.products = req.body.products.map(product => ({
-        label: sanitizeString(product.label || ''),
-        title: sanitizeString(product.title || ''),
-        description: sanitizeString(product.description || ''),
-        price: sanitizeString(product.price || '$29.99'),
-        image: sanitizeString(product.image || ''),
-        imageAlt: sanitizeString(product.imageAlt || ''),
-      }));
+      const processedProducts = await Promise.all(
+        req.body.products.map(async (product, index) => {
+          const oldProduct = oldProducts[index];
+          const oldImage = oldProduct?.image;
+          const newImage = product.image ? await processImageUpdate(product.image, oldImage, permanentFolder) : '';
+          
+          return {
+            label: sanitizeString(product.label || ''),
+            title: sanitizeString(product.title || ''),
+            description: sanitizeString(product.description || ''),
+            price: sanitizeString(product.price || '$29.99'),
+            image: newImage,
+            imageAlt: sanitizeString(product.imageAlt || ''),
+          };
+        })
+      );
+      
+      // Delete images from removed products
+      for (let i = req.body.products.length; i < oldProducts.length; i++) {
+        if (oldProducts[i].image && !oldProducts[i].image.includes('/temp-uploads/')) {
+          try {
+            await processImageUpdate('', oldProducts[i].image, permanentFolder);
+          } catch (error) {
+            console.error('Failed to delete old product image:', error);
+          }
+        }
+      }
+      
+      main.products = processedProducts;
     }
     
     await main.save();

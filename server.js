@@ -13,18 +13,10 @@ import aboutRoutes from './routes/aboutRoutes.js';
 import servicesRoutes from './routes/servicesRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
-import analFistulaRoutes from './routes/analFistulaRoutes.js';
-import pilesRoutes from './routes/pilesRoutes.js';
-import pelvicFloorRoutes from './routes/pelvicFloorRoutes.js';
-import bandingPilesRoutes from './routes/bandingPilesRoutes.js';
-import analFissureRoutes from './routes/analFissureRoutes.js';
-import colorectalSymptomsRoutes from './routes/colorectalSymptomsRoutes.js';
-import colonRectalCancerRoutes from './routes/colonRectalCancerRoutes.js';
-import laserSurgeryRoutes from './routes/laserSurgeryRoutes.js';
-import analWoundCareRoutes from './routes/analWoundCareRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import commonRoutes from './routes/commonRoutes.js';
 import gutWellnessRoutes from './routes/gut_wellness/gutWellnessRoutes.js';
+import colorectalClinicRoutes from './routes/colorectal_clinic/colorectalClinicRoutes.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -41,18 +33,10 @@ app.use('/api/about', aboutRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/uploads', uploadRoutes);
-app.use('/api/anal-fistula', analFistulaRoutes);
-app.use('/api/piles', pilesRoutes);
-app.use('/api/pelvic-floor', pelvicFloorRoutes);
-app.use('/api/banding-piles', bandingPilesRoutes);
-app.use('/api/anal-fissure', analFissureRoutes);
-app.use('/api/colorectal-symptoms', colorectalSymptomsRoutes);
-app.use('/api/colon-rectal-cancer', colonRectalCancerRoutes);
-app.use('/api/laser-surgery', laserSurgeryRoutes);
-app.use('/api/anal-wound-care', analWoundCareRoutes);
 app.use('/api/product', productRoutes);
 app.use('/api/common', commonRoutes);
 app.use('/api/gut-wellness', gutWellnessRoutes);
+app.use('/api', colorectalClinicRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

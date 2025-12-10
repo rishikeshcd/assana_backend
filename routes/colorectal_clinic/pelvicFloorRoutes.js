@@ -1,6 +1,7 @@
 import express from 'express';
-import ColorectalSymptomsHero from '../models/colorectal_symptoms/ColorectalSymptomsHero.js';
-import ColorectalSymptomsMain from '../models/colorectal_symptoms/ColorectalSymptomsMain.js';
+import PelvicFloorHero from '../../models/colorectal_clinic/pelvic_floor/PelvicFloorHero.js';
+import PelvicFloorMain from '../../models/colorectal_clinic/pelvic_floor/PelvicFloorMain.js';
+import { processImageUpdate, processSectionsWithImages } from '../../utils/cloudinaryHelper.js';
 
 const router = express.Router();
 
@@ -10,29 +11,36 @@ const sanitizeString = (str) => {
   return str.trim();
 };
 
-// ==================== COLORECTAL SYMPTOMS HERO ====================
-// GET /api/colorectal-symptoms/hero
+// ==================== PELVIC FLOOR HERO ====================
+// GET /api/pelvic-floor/hero
 router.get('/hero', async (req, res) => {
   try {
-    const hero = await ColorectalSymptomsHero.getSingleton();
+    const hero = await PelvicFloorHero.getSingleton();
     res.json(hero);
   } catch (error) {
-    console.error('Error fetching colorectal symptoms hero:', error);
+    console.error('Error fetching pelvic floor hero:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch colorectal symptoms hero',
+      error: 'Failed to fetch pelvic floor hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/colorectal-symptoms/hero
+// PUT /api/pelvic-floor/hero
 router.put('/hero', async (req, res) => {
   try {
-    const hero = await ColorectalSymptomsHero.getSingleton();
+    const hero = await PelvicFloorHero.getSingleton();
+    const oldBackgroundImage = hero.backgroundImage;
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
-    // Update fields (sanitize strings)
-    if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
+    // Process background image: move from temp if needed, delete old image
+    if (req.body.backgroundImage !== undefined) {
+      const newBackgroundImage = sanitizeString(req.body.backgroundImage);
+      hero.backgroundImage = await processImageUpdate(newBackgroundImage, oldBackgroundImage, permanentFolder);
+    }
+    
+    // Update other fields (sanitize strings)
     if (req.body.title !== undefined) hero.title = sanitizeString(req.body.title);
     if (req.body.description !== undefined) hero.description = sanitizeString(req.body.description);
     if (req.body.buttonText !== undefined) hero.buttonText = sanitizeString(req.body.buttonText);
@@ -40,41 +48,44 @@ router.put('/hero', async (req, res) => {
     await hero.save();
     res.json(hero);
   } catch (error) {
-    console.error('Error updating colorectal symptoms hero:', error);
+    console.error('Error updating pelvic floor hero:', error);
     res.status(500).json({ 
-      error: 'Failed to update colorectal symptoms hero',
+      error: 'Failed to update pelvic floor hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// ==================== COLORECTAL SYMPTOMS MAIN ====================
-// GET /api/colorectal-symptoms/main
+// ==================== PELVIC FLOOR MAIN ====================
+// GET /api/pelvic-floor/main
 router.get('/main', async (req, res) => {
   try {
-    const main = await ColorectalSymptomsMain.getSingleton();
+    const main = await PelvicFloorMain.getSingleton();
     res.json(main);
   } catch (error) {
-    console.error('Error fetching colorectal symptoms main:', error);
+    console.error('Error fetching pelvic floor main:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch colorectal symptoms main',
+      error: 'Failed to fetch pelvic floor main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/colorectal-symptoms/main
+// PUT /api/pelvic-floor/main
 router.put('/main', async (req, res) => {
   try {
-    const main = await ColorectalSymptomsMain.getSingleton();
+    const main = await PelvicFloorMain.getSingleton();
+    const oldSections = main.sections || [];
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
-    // Update sections array
+    // Update sections array with image processing
     if (req.body.sections !== undefined && Array.isArray(req.body.sections)) {
-      main.sections = req.body.sections.map(section => ({
+      const processedSections = await processSectionsWithImages(req.body.sections, oldSections, permanentFolder);
+      main.sections = processedSections.map(section => ({
         title: sanitizeString(section.title || ''),
-        image: sanitizeString(section.image || ''),
+        image: section.image || '', // Already processed
         imageAlt: sanitizeString(section.imageAlt || ''),
         imageTitle: sanitizeString(section.imageTitle || ''),
         whatIsItHeading: sanitizeString(section.whatIsItHeading || 'What is it?'),
@@ -91,9 +102,9 @@ router.put('/main', async (req, res) => {
     await main.save();
     res.json(main);
   } catch (error) {
-    console.error('Error updating colorectal symptoms main:', error);
+    console.error('Error updating pelvic floor main:', error);
     res.status(500).json({ 
-      error: 'Failed to update colorectal symptoms main',
+      error: 'Failed to update pelvic floor main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });

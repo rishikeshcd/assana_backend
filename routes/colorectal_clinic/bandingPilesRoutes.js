@@ -1,6 +1,7 @@
 import express from 'express';
-import BandingPilesHero from '../models/banding_piles/BandingPilesHero.js';
-import BandingPilesContent from '../models/banding_piles/BandingPilesContent.js';
+import BandingPilesHero from '../../models/colorectal_clinic/banding_piles/BandingPilesHero.js';
+import BandingPilesContent from '../../models/colorectal_clinic/banding_piles/BandingPilesContent.js';
+import { processImageUpdate } from '../../utils/cloudinaryHelper.js';
 
 const router = express.Router();
 
@@ -30,9 +31,16 @@ router.get('/hero', async (req, res) => {
 router.put('/hero', async (req, res) => {
   try {
     const hero = await BandingPilesHero.getSingleton();
+    const oldBackgroundImage = hero.backgroundImage;
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
-    // Update fields (sanitize strings)
-    if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
+    // Process background image: move from temp if needed, delete old image
+    if (req.body.backgroundImage !== undefined) {
+      const newBackgroundImage = sanitizeString(req.body.backgroundImage);
+      hero.backgroundImage = await processImageUpdate(newBackgroundImage, oldBackgroundImage, permanentFolder);
+    }
+    
+    // Update other fields (sanitize strings)
     if (req.body.title !== undefined) hero.title = sanitizeString(req.body.title);
     if (req.body.description !== undefined) hero.description = sanitizeString(req.body.description);
     if (req.body.buttonText !== undefined) hero.buttonText = sanitizeString(req.body.buttonText);
@@ -95,9 +103,12 @@ router.put('/content', async (req, res) => {
       }
     }
     
-    // Update center image
+    // Update center image: move from temp if needed, delete old image
+    const oldCenterImage = content.centerImage;
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     if (req.body.centerImage !== undefined) {
-      content.centerImage = sanitizeString(req.body.centerImage);
+      const newCenterImage = sanitizeString(req.body.centerImage);
+      content.centerImage = await processImageUpdate(newCenterImage, oldCenterImage, permanentFolder);
     }
     if (req.body.centerImageAlt !== undefined) {
       content.centerImageAlt = sanitizeString(req.body.centerImageAlt);

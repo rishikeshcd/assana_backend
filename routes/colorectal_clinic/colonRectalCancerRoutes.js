@@ -1,6 +1,7 @@
 import express from 'express';
-import ColonRectalCancerHero from '../models/colon_rectal_cancer/ColonRectalCancerHero.js';
-import ColonRectalCancerMain from '../models/colon_rectal_cancer/ColonRectalCancerMain.js';
+import ColonRectalCancerHero from '../../models/colorectal_clinic/colon_rectal_cancer/ColonRectalCancerHero.js';
+import ColonRectalCancerMain from '../../models/colorectal_clinic/colon_rectal_cancer/ColonRectalCancerMain.js';
+import { processImageUpdate, processSectionsWithImages } from '../../utils/cloudinaryHelper.js';
 
 const router = express.Router();
 
@@ -30,9 +31,16 @@ router.get('/hero', async (req, res) => {
 router.put('/hero', async (req, res) => {
   try {
     const hero = await ColonRectalCancerHero.getSingleton();
+    const oldBackgroundImage = hero.backgroundImage;
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
-    // Update fields (sanitize strings)
-    if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
+    // Process background image: move from temp if needed, delete old image
+    if (req.body.backgroundImage !== undefined) {
+      const newBackgroundImage = sanitizeString(req.body.backgroundImage);
+      hero.backgroundImage = await processImageUpdate(newBackgroundImage, oldBackgroundImage, permanentFolder);
+    }
+    
+    // Update other fields (sanitize strings)
     if (req.body.title !== undefined) hero.title = sanitizeString(req.body.title);
     if (req.body.description !== undefined) hero.description = sanitizeString(req.body.description);
     if (req.body.buttonText !== undefined) hero.buttonText = sanitizeString(req.body.buttonText);
@@ -69,12 +77,15 @@ router.get('/main', async (req, res) => {
 router.put('/main', async (req, res) => {
   try {
     const main = await ColonRectalCancerMain.getSingleton();
+    const oldSections = main.sections || [];
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
-    // Update sections array
+    // Update sections array with image processing
     if (req.body.sections !== undefined && Array.isArray(req.body.sections)) {
-      main.sections = req.body.sections.map(section => ({
+      const processedSections = await processSectionsWithImages(req.body.sections, oldSections, permanentFolder);
+      main.sections = processedSections.map(section => ({
         title: sanitizeString(section.title || ''),
-        image: sanitizeString(section.image || ''),
+        image: section.image || '', // Already processed
         imageAlt: sanitizeString(section.imageAlt || ''),
         imageTitle: sanitizeString(section.imageTitle || ''),
         description: sanitizeString(section.description || ''),
@@ -97,5 +108,4 @@ router.put('/main', async (req, res) => {
 });
 
 export default router;
-
 

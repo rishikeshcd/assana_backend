@@ -7,6 +7,7 @@ import HomeVideo from '../models/home/HomeVideo.js';
 import HomePatientFeedbackComponent from '../models/home/HomePatientFeedbackComponent.js';
 import HomeAskedQuestionsComponent from '../models/home/HomeAskedQuestionsComponent.js';
 import HomeGetStartedComponent from '../models/home/HomeGetStartedComponent.js';
+import { processImageUpdate } from '../utils/cloudinaryHelper.js';
 
 const router = express.Router();
 
@@ -57,7 +58,13 @@ router.put('/banner', async (req, res) => {
     if (req.body.experienceItems_6 !== undefined) banner.experienceItems_6 = sanitizeString(req.body.experienceItems_6);
     if (req.body.experienceItems_7 !== undefined) banner.experienceItems_7 = sanitizeString(req.body.experienceItems_7);
     
-    if (req.body.backgroundImage !== undefined) banner.backgroundImage = sanitizeString(req.body.backgroundImage);
+    // Process background image: move from temp if needed, delete old image
+    const oldBackgroundImage = banner.backgroundImage;
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
+    if (req.body.backgroundImage !== undefined) {
+      const newBackgroundImage = sanitizeString(req.body.backgroundImage);
+      banner.backgroundImage = await processImageUpdate(newBackgroundImage, oldBackgroundImage, permanentFolder);
+    }
     
     await banner.save();
     res.json(banner);
@@ -102,9 +109,12 @@ router.put('/services', async (req, res) => {
       }
     });
     
-    // Handle backgroundImage specifically
+    // Handle backgroundImage specifically: move from temp if needed, delete old image
+    const oldBackgroundImage = dropdown.backgroundImage;
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     if (req.body.backgroundImage !== undefined) {
-      dropdown.backgroundImage = sanitizeString(req.body.backgroundImage);
+      const newBackgroundImage = sanitizeString(req.body.backgroundImage);
+      dropdown.backgroundImage = await processImageUpdate(newBackgroundImage, oldBackgroundImage, permanentFolder);
     }
     
     await dropdown.save();
@@ -341,7 +351,13 @@ router.put('/get-started', async (req, res) => {
     
     if (req.body.Heading !== undefined) getStarted.Heading = sanitizeString(req.body.Heading);
     if (req.body.subHeading !== undefined) getStarted.subHeading = sanitizeString(req.body.subHeading);
-    if (req.body.backgroundImage !== undefined) getStarted.backgroundImage = sanitizeString(req.body.backgroundImage);
+    // Process background image: move from temp if needed, delete old image
+    const oldBackgroundImage = getStarted.backgroundImage;
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
+    if (req.body.backgroundImage !== undefined) {
+      const newBackgroundImage = sanitizeString(req.body.backgroundImage);
+      getStarted.backgroundImage = await processImageUpdate(newBackgroundImage, oldBackgroundImage, permanentFolder);
+    }
     if (req.body.button1Text !== undefined) getStarted.button1Text = sanitizeString(req.body.button1Text);
     if (req.body.button2Text !== undefined) getStarted.button2Text = sanitizeString(req.body.button2Text);
     

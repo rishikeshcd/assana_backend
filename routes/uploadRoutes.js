@@ -39,8 +39,14 @@ const cloudinaryStorage = new CloudinaryStorage({
     const ext = path.extname(file.originalname);
     const name = path.basename(file.originalname, ext).replace(/\s+/g, '-');
     
+    // Check if this is a temporary upload (from query param - more reliable with multipart/form-data)
+    const isTemp = req.query.temp === 'true';
+    const folder = isTemp 
+      ? 'temp-uploads' 
+      : (process.env.CLOUDINARY_FOLDER || 'assana-uploads');
+    
     return {
-      folder: process.env.CLOUDINARY_FOLDER || 'assana-uploads',
+      folder: folder,
       public_id: `${name}-${uniqueSuffix}`,
       format: ext.slice(1) || 'jpg', // Remove the dot from extension
       resource_type: 'image',
@@ -72,13 +78,16 @@ router.post('/', upload.single('file'), (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    // Check if this is a temporary upload (from query param - more reliable with multipart/form-data)
+    const isTemp = req.query.temp === 'true';
+    const folder = isTemp ? 'temp-uploads' : (process.env.CLOUDINARY_FOLDER || 'assana-uploads');
+
     // multer-storage-cloudinary stores the URL in req.file.path
     // It can also be in secure_url, url, or we can construct it from public_id
     let fileUrl = req.file.path || req.file.secure_url || req.file.url;
     
     // If still no URL, construct it from public_id
     if (!fileUrl && req.file.public_id) {
-      const folder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
       fileUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${folder}/${req.file.public_id}.${req.file.format || 'jpg'}`;
     }
 
@@ -94,9 +103,10 @@ router.post('/', upload.single('file'), (req, res) => {
       size: req.file.bytes || req.file.size,
       storage: 'cloudinary',
       publicId: req.file.public_id,
+      isTemp: isTemp,
     };
 
-    console.log(`✅ File uploaded successfully to Cloudinary: ${fileUrl}`);
+    console.log(`✅ File uploaded successfully to Cloudinary${isTemp ? ' (temp)' : ''}: ${fileUrl}`);
     res.json(responseData);
   } catch (error) {
     console.error('Upload error:', error);

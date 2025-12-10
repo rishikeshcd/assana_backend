@@ -1,6 +1,7 @@
 import express from 'express';
 import NewMomProgramHero from '../../models/gut_wellness/new_mom_program/NewMomProgramHero.js';
 import NewMomProgramMain from '../../models/gut_wellness/new_mom_program/NewMomProgramMain.js';
+import { processImageUpdate } from '../../utils/cloudinaryHelper.js';
 
 const router = express.Router();
 
@@ -30,9 +31,16 @@ router.get('/hero', async (req, res) => {
 router.put('/hero', async (req, res) => {
   try {
     const hero = await NewMomProgramHero.getSingleton();
+    const oldBackgroundImage = hero.backgroundImage;
     
-    // Update fields (sanitize strings)
-    if (req.body.backgroundImage !== undefined) hero.backgroundImage = sanitizeString(req.body.backgroundImage);
+    // Process background image: move from temp if needed, delete old image
+    if (req.body.backgroundImage !== undefined) {
+      const newBackgroundImage = sanitizeString(req.body.backgroundImage);
+      const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
+      hero.backgroundImage = await processImageUpdate(newBackgroundImage, oldBackgroundImage, permanentFolder);
+    }
+    
+    // Update other fields (sanitize strings)
     if (req.body.title !== undefined) hero.title = sanitizeString(req.body.title);
     if (req.body.description !== undefined) hero.description = sanitizeString(req.body.description);
     if (req.body.buttonText !== undefined) hero.buttonText = sanitizeString(req.body.buttonText);
@@ -69,6 +77,8 @@ router.get('/main', async (req, res) => {
 router.put('/main', async (req, res) => {
   try {
     const main = await NewMomProgramMain.getSingleton();
+    const oldCenterImage = main.centerImage;
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
     if (req.body.mainTitle !== undefined) main.mainTitle = sanitizeString(req.body.mainTitle);
     
@@ -80,9 +90,10 @@ router.put('/main', async (req, res) => {
       }));
     }
     
-    // Update center image
+    // Update center image: move from temp if needed, delete old image
     if (req.body.centerImage !== undefined) {
-      main.centerImage = sanitizeString(req.body.centerImage);
+      const newCenterImage = sanitizeString(req.body.centerImage);
+      main.centerImage = await processImageUpdate(newCenterImage, oldCenterImage, permanentFolder);
     }
     if (req.body.centerImageAlt !== undefined) {
       main.centerImageAlt = sanitizeString(req.body.centerImageAlt);

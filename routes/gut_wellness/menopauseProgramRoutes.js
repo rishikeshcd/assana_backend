@@ -1,6 +1,6 @@
 import express from 'express';
-import AssanaButtCheckHero from '../../models/gut_wellness/assana_butt_check/AssanaButtCheckHero.js';
-import AssanaButtCheckMain from '../../models/gut_wellness/assana_butt_check/AssanaButtCheckMain.js';
+import MenopauseProgramHero from '../../models/gut_wellness/menopause_program/MenopauseProgramHero.js';
+import MenopauseProgramMain from '../../models/gut_wellness/menopause_program/MenopauseProgramMain.js';
 import { processImageUpdate } from '../../utils/cloudinaryHelper.js';
 
 const router = express.Router();
@@ -11,26 +11,26 @@ const sanitizeString = (str) => {
   return str.trim();
 };
 
-// ==================== ASSANA BUTT CHECK HERO ====================
-// GET /api/gut-wellness/assana-butt-check/hero
+// ==================== MENOPAUSE PROGRAM HERO ====================
+// GET /api/gut-wellness/menopause-program/hero
 router.get('/hero', async (req, res) => {
   try {
-    const hero = await AssanaButtCheckHero.getSingleton();
+    const hero = await MenopauseProgramHero.getSingleton();
     res.json(hero);
   } catch (error) {
-    console.error('Error fetching assana butt check hero:', error);
+    console.error('Error fetching menopause program hero:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch assana butt check hero',
+      error: 'Failed to fetch menopause program hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/gut-wellness/assana-butt-check/hero
+// PUT /api/gut-wellness/menopause-program/hero
 router.put('/hero', async (req, res) => {
   try {
-    const hero = await AssanaButtCheckHero.getSingleton();
+    const hero = await MenopauseProgramHero.getSingleton();
     const oldBackgroundImage = hero.backgroundImage;
     const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
@@ -48,35 +48,35 @@ router.put('/hero', async (req, res) => {
     await hero.save();
     res.json(hero);
   } catch (error) {
-    console.error('Error updating assana butt check hero:', error);
+    console.error('Error updating menopause program hero:', error);
     res.status(500).json({ 
-      error: 'Failed to update assana butt check hero',
+      error: 'Failed to update menopause program hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// ==================== ASSANA BUTT CHECK MAIN ====================
-// GET /api/gut-wellness/assana-butt-check/main
+// ==================== MENOPAUSE PROGRAM MAIN ====================
+// GET /api/gut-wellness/menopause-program/main
 router.get('/main', async (req, res) => {
   try {
-    const main = await AssanaButtCheckMain.getSingleton();
+    const main = await MenopauseProgramMain.getSingleton();
     res.json(main);
   } catch (error) {
-    console.error('Error fetching assana butt check main:', error);
+    console.error('Error fetching menopause program main:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch assana butt check main',
+      error: 'Failed to fetch menopause program main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/gut-wellness/assana-butt-check/main
+// PUT /api/gut-wellness/menopause-program/main
 router.put('/main', async (req, res) => {
   try {
-    const main = await AssanaButtCheckMain.getSingleton();
+    const main = await MenopauseProgramMain.getSingleton();
     const oldCenterImage = main.centerImage;
     const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
@@ -110,9 +110,9 @@ router.put('/main', async (req, res) => {
     await main.save();
     res.json(main);
   } catch (error) {
-    console.error('Error updating assana butt check main:', error);
+    console.error('Error updating menopause program main:', error);
     res.status(500).json({ 
-      error: 'Failed to update assana butt check main',
+      error: 'Failed to update menopause program main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });

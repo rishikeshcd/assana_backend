@@ -4,6 +4,7 @@ import AboutMission from '../models/about/AboutMission.js';
 import AboutWhyChoose from '../models/about/AboutWhyChoose.js';
 import AboutMissionVision from '../models/about/AboutMissionVision.js';
 import AboutTeam from '../models/about/AboutTeam.js';
+import { processImageUpdate } from '../utils/cloudinaryHelper.js';
 
 const router = express.Router();
 
@@ -191,15 +192,38 @@ router.put('/team', async (req, res) => {
     // Update section heading
     if (req.body.sectionHeading !== undefined) team.sectionHeading = sanitizeString(req.body.sectionHeading);
     
-    // Update team members array
+    // Update team members array with image processing
+    const oldTeamMembers = team.teamMembers || [];
+    const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     if (req.body.teamMembers !== undefined && Array.isArray(req.body.teamMembers)) {
-      team.teamMembers = req.body.teamMembers.map(member => ({
-        role: sanitizeString(member.role || ''),
-        profileImage: sanitizeString(member.profileImage || ''),
-        name: sanitizeString(member.name || ''),
-        title: sanitizeString(member.title || ''),
-        description: sanitizeString(member.description || ''),
-      }));
+      const processedMembers = await Promise.all(
+        req.body.teamMembers.map(async (member, index) => {
+          const oldMember = oldTeamMembers[index];
+          const oldImage = oldMember?.profileImage;
+          const newImage = member.profileImage ? await processImageUpdate(member.profileImage, oldImage, permanentFolder) : '';
+          
+          return {
+            role: sanitizeString(member.role || ''),
+            profileImage: newImage,
+            name: sanitizeString(member.name || ''),
+            title: sanitizeString(member.title || ''),
+            description: sanitizeString(member.description || ''),
+          };
+        })
+      );
+      
+      // Delete images from removed members
+      for (let i = req.body.teamMembers.length; i < oldTeamMembers.length; i++) {
+        if (oldTeamMembers[i].profileImage && !oldTeamMembers[i].profileImage.includes('/temp-uploads/')) {
+          try {
+            await processImageUpdate('', oldTeamMembers[i].profileImage, permanentFolder);
+          } catch (error) {
+            console.error('Failed to delete old profile image:', error);
+          }
+        }
+      }
+      
+      team.teamMembers = processedMembers;
     }
     
     await team.save();

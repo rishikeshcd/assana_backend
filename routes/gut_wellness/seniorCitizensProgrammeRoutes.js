@@ -1,6 +1,6 @@
 import express from 'express';
-import GutBrainAxisHero from '../../models/gut_wellness/gut_brain_axis/GutBrainAxisHero.js';
-import GutBrainAxisMain from '../../models/gut_wellness/gut_brain_axis/GutBrainAxisMain.js';
+import SeniorCitizensProgrammeHero from '../../models/gut_wellness/senior_citizens_programme/SeniorCitizensProgrammeHero.js';
+import SeniorCitizensProgrammeMain from '../../models/gut_wellness/senior_citizens_programme/SeniorCitizensProgrammeMain.js';
 import { processImageUpdate, processSectionsWithImages } from '../../utils/cloudinaryHelper.js';
 
 const router = express.Router();
@@ -11,26 +11,26 @@ const sanitizeString = (str) => {
   return str.trim();
 };
 
-// ==================== GUT BRAIN AXIS HERO ====================
-// GET /api/gut-wellness/gut-brain-axis/hero
+// ==================== SENIOR CITIZENS PROGRAMME HERO ====================
+// GET /api/gut-wellness/senior-citizens-programme/hero
 router.get('/hero', async (req, res) => {
   try {
-    const hero = await GutBrainAxisHero.getSingleton();
+    const hero = await SeniorCitizensProgrammeHero.getSingleton();
     res.json(hero);
   } catch (error) {
-    console.error('Error fetching gut brain axis hero:', error);
+    console.error('Error fetching senior citizens programme hero:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch gut brain axis hero',
+      error: 'Failed to fetch senior citizens programme hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/gut-wellness/gut-brain-axis/hero
+// PUT /api/gut-wellness/senior-citizens-programme/hero
 router.put('/hero', async (req, res) => {
   try {
-    const hero = await GutBrainAxisHero.getSingleton();
+    const hero = await SeniorCitizensProgrammeHero.getSingleton();
     const oldBackgroundImage = hero.backgroundImage;
     const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
@@ -48,35 +48,35 @@ router.put('/hero', async (req, res) => {
     await hero.save();
     res.json(hero);
   } catch (error) {
-    console.error('Error updating gut brain axis hero:', error);
+    console.error('Error updating senior citizens programme hero:', error);
     res.status(500).json({ 
-      error: 'Failed to update gut brain axis hero',
+      error: 'Failed to update senior citizens programme hero',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// ==================== GUT BRAIN AXIS MAIN ====================
-// GET /api/gut-wellness/gut-brain-axis/main
+// ==================== SENIOR CITIZENS PROGRAMME MAIN ====================
+// GET /api/gut-wellness/senior-citizens-programme/main
 router.get('/main', async (req, res) => {
   try {
-    const main = await GutBrainAxisMain.getSingleton();
+    const main = await SeniorCitizensProgrammeMain.getSingleton();
     res.json(main);
   } catch (error) {
-    console.error('Error fetching gut brain axis main:', error);
+    console.error('Error fetching senior citizens programme main:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch gut brain axis main',
+      error: 'Failed to fetch senior citizens programme main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
 
-// PUT /api/gut-wellness/gut-brain-axis/main
+// PUT /api/gut-wellness/senior-citizens-programme/main
 router.put('/main', async (req, res) => {
   try {
-    const main = await GutBrainAxisMain.getSingleton();
+    const main = await SeniorCitizensProgrammeMain.getSingleton();
     const oldSections = main.sections || [];
     const permanentFolder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
@@ -104,9 +104,9 @@ router.put('/main', async (req, res) => {
     await main.save();
     res.json(main);
   } catch (error) {
-    console.error('Error updating gut brain axis main:', error);
+    console.error('Error updating senior citizens programme main:', error);
     res.status(500).json({ 
-      error: 'Failed to update gut brain axis main',
+      error: 'Failed to update senior citizens programme main',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
