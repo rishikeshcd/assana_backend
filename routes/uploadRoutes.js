@@ -71,68 +71,6 @@ const upload = multer({
   },
 });
 
-// GET /api/uploads/signature - Get Cloudinary upload signature for direct client upload
-router.get('/signature', (req, res) => {
-  try {
-    const isTemp = req.query.temp === 'true';
-    const folder = isTemp ? 'temp-uploads' : (process.env.CLOUDINARY_FOLDER || 'assana-uploads');
-    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
-    
-    // Generate unique public_id
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const publicId = `image-${uniqueSuffix}`;
-    
-    // If upload preset is configured, use unsigned uploads (simpler, no signature needed)
-    if (uploadPreset) {
-      console.log(`✅ Using unsigned upload with preset: ${uploadPreset}`);
-      return res.json({
-        cloudName: cloudName,
-        apiKey: apiKey,
-        folder: folder,
-        publicId: publicId,
-        uploadPreset: uploadPreset,
-        // No signature/timestamp needed for unsigned uploads
-      });
-    }
-    
-    // Generate timestamp and signature for signed upload
-    const timestamp = Math.round(new Date().getTime() / 1000);
-    const params = {
-      timestamp: timestamp,
-      folder: folder,
-      public_id: publicId, // Note: public_id should NOT include folder prefix
-    };
-    
-    // Generate signature using Cloudinary's signing algorithm
-    // Cloudinary automatically sorts parameters alphabetically when signing
-    const signature = cloudinary.utils.api_sign_request(params, apiSecret);
-    
-    console.log(`✅ Generated signature for signed upload (folder: ${folder}, publicId: ${publicId})`);
-    
-    res.json({
-      cloudName: cloudName,
-      apiKey: apiKey,
-      timestamp: timestamp,
-      signature: signature,
-      folder: folder,
-      publicId: publicId, // Client should send this WITHOUT folder prefix
-      uploadPreset: undefined,
-    });
-  } catch (error) {
-    console.error('❌ Error generating upload signature:', error);
-    res.status(500).json({ error: 'Failed to generate upload signature', message: error.message });
-  }
-});
-
-// Handle OPTIONS for signature endpoint
-router.options('/signature', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Max-Age', '86400');
-  res.sendStatus(200);
-});
-
 // Handle OPTIONS preflight requests for CORS
 router.options('/', (req, res) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
