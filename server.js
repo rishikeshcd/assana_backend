@@ -104,21 +104,42 @@ app.use((req, res) => {
 
 // Initialize database connection (for both local and Vercel)
 let dbInitialized = false;
+let dbConnectionPromise = null;
+
 const initializeDB = async () => {
   if (!dbInitialized) {
-    try {
-      await connectDB();
-      dbInitialized = true;
-      console.log('✅ Database connection initialized');
-    } catch (error) {
-      console.error('❌ Database connection failed:', error.message);
-      // Don't throw - allow serverless function to continue (will retry on next request)
+    if (!dbConnectionPromise) {
+      dbConnectionPromise = connectDB()
+        .then(() => {
+          dbInitialized = true;
+          console.log('✅ Database connection initialized');
+        })
+        .catch((error) => {
+          console.error('❌ Database connection failed:', error.message);
+          dbConnectionPromise = null; // Reset so it can be retried
+          throw error;
+        });
     }
+    await dbConnectionPromise;
   }
 };
 
-// Initialize DB immediately
-initializeDB();
+// Wait for connection to be ready (state 1 = connected)
+const waitForConnection = async (maxAttempts = 30, delayMs = 500) => {
+  for (let i = 0; i < maxAttempts; i++) {
+    const dbStatus = checkConnection();
+    if (dbStatus.isConnected) {
+      return true;
+    }
+    if (dbStatus.readyState === 0) {
+      // Disconnected - connection failed
+      throw new Error('Database connection failed - disconnected');
+    }
+    // Still connecting (state 2) - wait and retry
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+  throw new Error('Database connection timeout - took too long to connect');
+};
 
 const PORT = process.env.PORT || 5000;
 
@@ -127,6 +148,10 @@ const startServer = async () => {
   try {
     console.log('🚀 Starting server...');
     await initializeDB();
+    
+    // Wait for connection to be fully ready (state 1)
+    console.log('⏳ Waiting for database connection to be ready...');
+    await waitForConnection();
     
     // Verify connection before starting server
     const dbStatus = checkConnection();
@@ -148,6 +173,13 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+// Initialize DB for Vercel (serverless) - connection will be established on first request
+if (process.env.VERCEL === '1') {
+  initializeDB().catch((error) => {
+    console.error('⚠️  Initial DB connection attempt failed (will retry on first request):', error.message);
+  });
+}
 
 // Only start server if not in Vercel environment
 if (process.env.VERCEL !== '1') {

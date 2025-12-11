@@ -71,6 +71,51 @@ const upload = multer({
   },
 });
 
+// GET /api/uploads/signature - Get Cloudinary upload signature for direct client upload
+router.get('/signature', (req, res) => {
+  try {
+    const isTemp = req.query.temp === 'true';
+    const folder = isTemp ? 'temp-uploads' : (process.env.CLOUDINARY_FOLDER || 'assana-uploads');
+    
+    // Generate unique public_id
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const publicId = `image-${uniqueSuffix}`;
+    
+    // Generate timestamp and signature for signed upload
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const params = {
+      timestamp: timestamp,
+      folder: folder,
+      public_id: publicId,
+    };
+    
+    // Generate signature using Cloudinary's signing algorithm
+    const signature = cloudinary.utils.api_sign_request(params, apiSecret);
+    
+    res.json({
+      cloudName: cloudName,
+      apiKey: apiKey,
+      timestamp: timestamp,
+      signature: signature,
+      folder: folder,
+      publicId: publicId,
+      uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET || undefined, // Optional: use upload preset if configured
+    });
+  } catch (error) {
+    console.error('Error generating upload signature:', error);
+    res.status(500).json({ error: 'Failed to generate upload signature', message: error.message });
+  }
+});
+
+// Handle OPTIONS for signature endpoint
+router.options('/signature', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Max-Age', '86400');
+  res.sendStatus(200);
+});
+
 // Handle OPTIONS preflight requests for CORS
 router.options('/', (req, res) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
