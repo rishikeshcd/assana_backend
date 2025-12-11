@@ -182,91 +182,81 @@ export const moveImageToPermanent = async (tempUrl, permanentFolder = 'assana-up
 };
 
 /**
- * Process image URL: move from temp if needed, delete old image (OPTIMIZED - non-blocking deletion)
- * @param {string} newImageUrl - New image URL (may be in temp folder)
- * @param {string} oldImageUrl - Old image URL to delete
- * @param {string} permanentFolder - Permanent folder name
- * @returns {Promise<string>} - Final permanent URL
+ * Process image URL: Delete old image if it's being replaced (SIMPLE & RELIABLE)
+ * @param {string} newImageUrl - New image URL (already in permanent folder)
+ * @param {string} oldImageUrl - Old image URL to delete (only if different from new)
+ * @param {string} permanentFolder - Permanent folder name (not used, kept for compatibility)
+ * @returns {Promise<string>} - Returns new image URL (no processing needed)
  */
 export const processImageUpdate = async (newImageUrl, oldImageUrl, permanentFolder = 'assana-uploads') => {
   if (!newImageUrl) return newImageUrl;
   
-  let finalUrl = newImageUrl;
-  
-  // Move new image from temp to permanent if needed
-  // Check for temp-uploads in URL (handle different URL formats)
-  const isTempUrl = newImageUrl.includes('/temp-uploads/') || 
-                    newImageUrl.includes('temp-uploads/') ||
-                    (newImageUrl.includes('cloudinary.com') && newImageUrl.match(/temp-uploads/));
-  
-  if (isTempUrl) {
-    console.log(`🔄 Processing temp image: ${newImageUrl.substring(0, 100)}...`);
-    finalUrl = await moveImageToPermanent(newImageUrl, permanentFolder);
-    console.log(`✅ Processed image result: ${finalUrl.substring(0, 100)}...`);
-  } else {
-    console.log(`ℹ️  Image is not in temp folder, skipping move: ${newImageUrl.substring(0, 100)}...`);
-  }
-  
-  // Delete old image in background (non-blocking - don't wait for it)
-  if (oldImageUrl && oldImageUrl !== finalUrl && !oldImageUrl.includes('/temp-uploads/')) {
+  // New image is already in permanent folder - no moving needed
+  // Only delete old image if it exists and is different from new one
+  if (oldImageUrl && oldImageUrl !== newImageUrl && oldImageUrl.includes('cloudinary.com')) {
+    // Delete old image in background (non-blocking - don't wait for it)
+    // Only delete if it's a Cloudinary URL (safety check)
     deleteImageFromCloudinary(oldImageUrl).catch(error => {
       // Don't fail the update if deletion fails
-      console.error('Failed to delete old image (non-critical):', error.message);
+      console.warn(`⚠️  Failed to delete old image (non-critical): ${error.message}`);
     });
   }
   
-  return finalUrl;
+  return newImageUrl; // Return as-is, already in permanent folder
 };
 
 /**
- * Process sections array with images: move temp images and track old images for deletion (OPTIMIZED - parallel processing)
+ * Process sections array with images: Delete old images that are no longer used (SIMPLE & RELIABLE)
  * @param {Array} newSections - New sections array
  * @param {Array} oldSections - Old sections array
- * @param {string} permanentFolder - Permanent folder name
+ * @param {string} permanentFolder - Permanent folder name (not used, kept for compatibility)
  * @returns {Promise<Array>} - Processed sections array
  */
 export const processSectionsWithImages = async (newSections, oldSections = [], permanentFolder = 'assana-uploads') => {
   if (!Array.isArray(newSections)) return newSections;
   
   const oldImageUrls = new Set();
+  const newImageUrls = new Set();
   
   // Collect all old image URLs
   oldSections.forEach(section => {
-    if (section.image && !section.image.includes('/temp-uploads/')) {
+    if (section.image && section.image.includes('cloudinary.com')) {
       oldImageUrls.add(section.image);
     }
   });
   
-  // Process all images in parallel (much faster!)
-  const imageProcessingPromises = newSections.map(async (section) => {
+  // Collect all new image URLs and process each section
+  const processedSections = newSections.map((section) => {
     const processedSection = { ...section };
     
     if (section.image) {
+      // Track new image URLs
+      if (section.image.includes('cloudinary.com')) {
+        newImageUrls.add(section.image);
+      }
+      
+      // Find matching old image for this section
       const oldImage = oldSections.find(s => s.title === section.title)?.image;
-      processedSection.image = await processImageUpdate(section.image, oldImage, permanentFolder);
+      
+      // Process image (will delete old if different)
+      // Since images are already in permanent folder, just return as-is
+      processedSection.image = section.image;
       
       // Remove from oldImageUrls if it's being reused
-      if (oldImageUrls.has(processedSection.image)) {
-        oldImageUrls.delete(processedSection.image);
+      if (oldImage && oldImageUrls.has(oldImage) && oldImage === section.image) {
+        oldImageUrls.delete(oldImage);
       }
     }
     
     return processedSection;
   });
   
-  // Wait for all images to be processed in parallel
-  const processedSections = await Promise.all(imageProcessingPromises);
-  
-  // Delete old images in parallel (non-blocking - don't wait for completion)
-  const deletePromises = Array.from(oldImageUrls).map(oldUrl => 
+  // Delete old images that are no longer used (non-blocking)
+  const imagesToDelete = Array.from(oldImageUrls).filter(url => !newImageUrls.has(url));
+  imagesToDelete.forEach(oldUrl => {
     deleteImageFromCloudinary(oldUrl).catch(error => {
-      console.error('Failed to delete old section image:', error);
-    })
-  );
-  
-  // Don't wait for deletions to complete - they can happen in background
-  Promise.all(deletePromises).catch(() => {
-    // Silently handle any deletion errors
+      console.warn(`⚠️  Failed to delete old section image (non-critical): ${error.message}`);
+    });
   });
   
   return processedSections;

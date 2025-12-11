@@ -71,11 +71,11 @@ const upload = multer({
   },
 });
 
-// GET /api/uploads/config - Get Cloudinary config for direct client uploads
+// GET /api/uploads/config - Get Cloudinary config for direct client uploads (SIMPLE - direct to permanent folder)
 router.get('/config', (req, res) => {
   try {
-    const isTemp = req.query.temp !== 'true'; // Default to false, but we always use temp for direct uploads
-    const folder = 'temp-uploads'; // Always use temp folder for direct uploads
+    // Upload directly to permanent folder - no temp folder needed
+    const folder = process.env.CLOUDINARY_FOLDER || 'assana-uploads';
     
     const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
     
