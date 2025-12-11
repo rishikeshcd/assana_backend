@@ -71,6 +71,15 @@ const upload = multer({
   },
 });
 
+// Handle OPTIONS preflight requests for CORS
+router.options('/', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Max-Age', '86400');
+  res.sendStatus(200);
+});
+
 // POST /api/uploads - Upload a single image file
 router.post('/', upload.single('file'), (req, res) => {
   try {
