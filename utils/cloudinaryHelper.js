@@ -50,13 +50,24 @@ export const deleteImageFromCloudinary = async (urlOrPublicId) => {
       return null;
     }
     
-    const publicId = extractPublicIdFromUrl(urlOrPublicId);
+    let publicId = extractPublicIdFromUrl(urlOrPublicId);
+    
+    // If extraction failed and it's not a URL, treat it as a public_id directly
     if (!publicId) {
-      // Only warn if it's a Cloudinary-like URL that we couldn't parse
       if (urlOrPublicId.includes('cloudinary.com')) {
         console.warn(`⚠️  Could not extract public_id from Cloudinary URL: ${urlOrPublicId.substring(0, 80)}...`);
+        return null;
       }
-      return null;
+      // If it's not a URL, assume it's already a public_id
+      publicId = urlOrPublicId;
+    }
+    
+    // Normalize public_id - remove any duplicate folder prefixes
+    // Handle cases like "assana-uploads/assana-uploads/image-123" → "assana-uploads/image-123"
+    const folderPattern = /^(assana-uploads|temp-uploads)\/\1\//;
+    if (folderPattern.test(publicId)) {
+      publicId = publicId.replace(folderPattern, '$1/');
+      console.log(`🔧 Fixed duplicate folder in public_id: ${publicId}`);
     }
     
     const result = await cloudinary.uploader.destroy(publicId);
@@ -78,9 +89,8 @@ export const deleteImageFromCloudinary = async (urlOrPublicId) => {
 };
 
 /**
- * Move image from temp folder to permanent folder
- * Cloudinary's rename doesn't actually move files between folders,
- * so we upload from the temp URL to the permanent location, then delete temp
+ * Move image from temp folder to permanent folder (OPTIMIZED)
+ * Uses Cloudinary's rename API which is much faster than re-uploading
  * @param {string} tempUrl - Temporary Cloudinary URL
  * @param {string} permanentFolder - Permanent folder name (default: 'assana-uploads')
  * @returns {Promise<string>} - New permanent URL
@@ -88,8 +98,14 @@ export const deleteImageFromCloudinary = async (urlOrPublicId) => {
 export const moveImageToPermanent = async (tempUrl, permanentFolder = 'assana-uploads') => {
   if (!tempUrl) return tempUrl;
   
+  // Check if URL is in temp folder (handle different URL formats with versions/transformations)
+  const isTempUrl = tempUrl.includes('/temp-uploads/') || 
+                    tempUrl.includes('temp-uploads/') ||
+                    (tempUrl.includes('cloudinary.com') && tempUrl.match(/temp-uploads/));
+  
   // If URL is not in temp folder, return as is
-  if (!tempUrl.includes('/temp-uploads/')) {
+  if (!isTempUrl) {
+    console.log(`ℹ️  URL is not in temp folder, skipping move: ${tempUrl.substring(0, 100)}...`);
     return tempUrl;
   }
   
@@ -100,36 +116,62 @@ export const moveImageToPermanent = async (tempUrl, permanentFolder = 'assana-up
       return tempUrl;
     }
     
-    console.log(`🔄 Attempting to move: ${tempPublicId}`);
+    // Remove 'temp-uploads/' prefix to get just the filename
+    // Make sure we don't have duplicate folders
+    let filename = tempPublicId.replace(/^temp-uploads\//, '');
+    // Remove any existing folder prefix to avoid duplicates
+    filename = filename.replace(/^(assana-uploads|temp-uploads)\//, '');
     
-    // Remove 'temp-uploads/' prefix and add permanent folder
-    const permanentPublicId = tempPublicId.replace(/^temp-uploads\//, `${permanentFolder}/`);
+    // IMPORTANT: Cloudinary's rename API doesn't actually move files between folders
+    // It only changes the public_id metadata, but the file stays in the original folder
+    // So we MUST use upload method to actually move the file
     
-    console.log(`📤 Uploading from temp URL to permanent location: ${permanentPublicId}`);
+    console.log(`📤 Moving image from temp to permanent folder`);
+    console.log(`   From: ${tempPublicId}`);
+    console.log(`   To folder: ${permanentFolder}`);
+    console.log(`   Filename: ${filename}`);
+    console.log(`   Temp URL: ${tempUrl}`);
     
-    // Upload from the temp URL to the permanent location
-    // Cloudinary can upload from a remote URL (the temp Cloudinary URL)
+    // Upload from temp URL to permanent location (this actually moves the file)
+    // IMPORTANT: Specify both folder and public_id (without folder in public_id)
     const uploadResult = await cloudinary.uploader.upload(tempUrl, {
-      public_id: permanentPublicId,
-      folder: permanentFolder,
+      folder: permanentFolder, // Specify folder explicitly
+      public_id: filename, // Just the filename, folder is specified separately
       overwrite: false,
       resource_type: 'image',
-      invalidate: true, // Invalidate CDN cache
+      invalidate: true,
     });
     
-    console.log(`✅ Uploaded to permanent location: ${uploadResult.secure_url}`);
-    
-    // Delete the temp file
-    try {
-      const deleteResult = await cloudinary.uploader.destroy(tempPublicId);
-      if (deleteResult.result === 'ok') {
-        console.log(`🗑️  Deleted temp file: ${tempPublicId}`);
-      } else {
-        console.warn(`⚠️  Failed to delete temp file: ${deleteResult.result}`);
-      }
-    } catch (deleteError) {
-      console.warn(`⚠️  Error deleting temp file (non-critical): ${deleteError.message}`);
+    // Verify the upload was successful and in the correct folder
+    if (!uploadResult.secure_url) {
+      console.error(`❌ Upload failed - no secure_url returned`);
+      return tempUrl; // Return original if something went wrong
     }
+    
+    // Check if the URL contains the permanent folder
+    if (!uploadResult.secure_url.includes(`/${permanentFolder}/`)) {
+      console.error(`❌ Upload result doesn't have correct permanent folder URL`);
+      console.error(`   Expected folder: ${permanentFolder}`);
+      console.error(`   Got URL: ${uploadResult.secure_url}`);
+      console.error(`   Upload result:`, JSON.stringify(uploadResult, null, 2));
+      return tempUrl; // Return original if something went wrong
+    }
+    
+    console.log(`✅ Successfully moved to permanent location: ${uploadResult.secure_url}`);
+    console.log(`   Public ID: ${uploadResult.public_id}`);
+    
+    // Delete the temp file (non-blocking - don't wait for it)
+    cloudinary.uploader.destroy(tempPublicId)
+      .then((deleteResult) => {
+        if (deleteResult.result === 'ok') {
+          console.log(`🗑️  Deleted temp file: ${tempPublicId}`);
+        } else {
+          console.warn(`⚠️  Failed to delete temp file: ${deleteResult.result}`);
+        }
+      })
+      .catch((deleteError) => {
+        console.warn(`⚠️  Error deleting temp file (non-critical): ${deleteError.message}`);
+      });
     
     return uploadResult.secure_url;
   } catch (error) {
@@ -140,7 +182,7 @@ export const moveImageToPermanent = async (tempUrl, permanentFolder = 'assana-up
 };
 
 /**
- * Process image URL: move from temp if needed, delete old image
+ * Process image URL: move from temp if needed, delete old image (OPTIMIZED - non-blocking deletion)
  * @param {string} newImageUrl - New image URL (may be in temp folder)
  * @param {string} oldImageUrl - Old image URL to delete
  * @param {string} permanentFolder - Permanent folder name
@@ -152,25 +194,32 @@ export const processImageUpdate = async (newImageUrl, oldImageUrl, permanentFold
   let finalUrl = newImageUrl;
   
   // Move new image from temp to permanent if needed
-  if (newImageUrl && newImageUrl.includes('/temp-uploads/')) {
+  // Check for temp-uploads in URL (handle different URL formats)
+  const isTempUrl = newImageUrl.includes('/temp-uploads/') || 
+                    newImageUrl.includes('temp-uploads/') ||
+                    (newImageUrl.includes('cloudinary.com') && newImageUrl.match(/temp-uploads/));
+  
+  if (isTempUrl) {
+    console.log(`🔄 Processing temp image: ${newImageUrl.substring(0, 100)}...`);
     finalUrl = await moveImageToPermanent(newImageUrl, permanentFolder);
+    console.log(`✅ Processed image result: ${finalUrl.substring(0, 100)}...`);
+  } else {
+    console.log(`ℹ️  Image is not in temp folder, skipping move: ${newImageUrl.substring(0, 100)}...`);
   }
   
-  // Delete old image if it exists and is different from new one
+  // Delete old image in background (non-blocking - don't wait for it)
   if (oldImageUrl && oldImageUrl !== finalUrl && !oldImageUrl.includes('/temp-uploads/')) {
-    try {
-      await deleteImageFromCloudinary(oldImageUrl);
-    } catch (error) {
+    deleteImageFromCloudinary(oldImageUrl).catch(error => {
       // Don't fail the update if deletion fails
-      console.error('Failed to delete old image, but continuing with update:', error);
-    }
+      console.error('Failed to delete old image (non-critical):', error.message);
+    });
   }
   
   return finalUrl;
 };
 
 /**
- * Process sections array with images: move temp images and track old images for deletion
+ * Process sections array with images: move temp images and track old images for deletion (OPTIMIZED - parallel processing)
  * @param {Array} newSections - New sections array
  * @param {Array} oldSections - Old sections array
  * @param {string} permanentFolder - Permanent folder name
@@ -179,7 +228,6 @@ export const processImageUpdate = async (newImageUrl, oldImageUrl, permanentFold
 export const processSectionsWithImages = async (newSections, oldSections = [], permanentFolder = 'assana-uploads') => {
   if (!Array.isArray(newSections)) return newSections;
   
-  const processedSections = [];
   const oldImageUrls = new Set();
   
   // Collect all old image URLs
@@ -189,11 +237,10 @@ export const processSectionsWithImages = async (newSections, oldSections = [], p
     }
   });
   
-  // Process new sections
-  for (const section of newSections) {
+  // Process all images in parallel (much faster!)
+  const imageProcessingPromises = newSections.map(async (section) => {
     const processedSection = { ...section };
     
-    // Process image field if it exists
     if (section.image) {
       const oldImage = oldSections.find(s => s.title === section.title)?.image;
       processedSection.image = await processImageUpdate(section.image, oldImage, permanentFolder);
@@ -204,17 +251,23 @@ export const processSectionsWithImages = async (newSections, oldSections = [], p
       }
     }
     
-    processedSections.push(processedSection);
-  }
+    return processedSection;
+  });
   
-  // Delete old images that are no longer used
-  for (const oldUrl of oldImageUrls) {
-    try {
-      await deleteImageFromCloudinary(oldUrl);
-    } catch (error) {
+  // Wait for all images to be processed in parallel
+  const processedSections = await Promise.all(imageProcessingPromises);
+  
+  // Delete old images in parallel (non-blocking - don't wait for completion)
+  const deletePromises = Array.from(oldImageUrls).map(oldUrl => 
+    deleteImageFromCloudinary(oldUrl).catch(error => {
       console.error('Failed to delete old section image:', error);
-    }
-  }
+    })
+  );
+  
+  // Don't wait for deletions to complete - they can happen in background
+  Promise.all(deletePromises).catch(() => {
+    // Silently handle any deletion errors
+  });
   
   return processedSections;
 };

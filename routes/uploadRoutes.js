@@ -71,8 +71,97 @@ const upload = multer({
   },
 });
 
+// GET /api/uploads/config - Get Cloudinary config for direct client uploads
+router.get('/config', (req, res) => {
+  try {
+    const isTemp = req.query.temp !== 'true'; // Default to false, but we always use temp for direct uploads
+    const folder = 'temp-uploads'; // Always use temp folder for direct uploads
+    
+    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+    
+    // If upload preset is configured, use unsigned uploads (simpler)
+    if (uploadPreset) {
+      return res.json({
+        cloudName: cloudName,
+        uploadPreset: uploadPreset,
+        folder: folder,
+      });
+    }
+    
+    // Otherwise, generate signature for signed upload
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const params = {
+      timestamp: timestamp,
+      folder: folder,
+    };
+    
+    const signature = cloudinary.utils.api_sign_request(params, apiSecret);
+    
+    res.json({
+      cloudName: cloudName,
+      apiKey: apiKey,
+      timestamp: timestamp,
+      signature: signature,
+      folder: folder,
+    });
+  } catch (error) {
+    console.error('Error generating upload config:', error);
+    res.status(500).json({ error: 'Failed to generate upload config', message: error.message });
+  }
+});
+
+// POST /api/uploads/finalize - Move image from temp to permanent folder
+router.post('/finalize', async (req, res) => {
+  try {
+    const { tempUrl, oldUrl, permanentFolder } = req.body;
+    
+    if (!tempUrl) {
+      return res.status(400).json({ error: 'tempUrl is required' });
+    }
+    
+    // Import the helper function
+    const { moveImageToPermanent, deleteImageFromCloudinary } = await import('../utils/cloudinaryHelper.js');
+    
+    // Move image from temp to permanent folder
+    const finalUrl = await moveImageToPermanent(tempUrl, permanentFolder || 'assana-uploads');
+    
+    // Delete old image if provided and different from new one
+    if (oldUrl && oldUrl !== finalUrl && !oldUrl.includes('/temp-uploads/')) {
+      try {
+        await deleteImageFromCloudinary(oldUrl);
+      } catch (deleteError) {
+        console.warn('Failed to delete old image (non-critical):', deleteError.message);
+      }
+    }
+    
+    res.json({
+      url: finalUrl,
+      success: true,
+    });
+  } catch (error) {
+    console.error('Error finalizing image:', error);
+    res.status(500).json({ error: 'Failed to finalize image', message: error.message });
+  }
+});
+
 // Handle OPTIONS preflight requests for CORS
 router.options('/', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Max-Age', '86400');
+  res.sendStatus(200);
+});
+
+router.options('/config', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Max-Age', '86400');
+  res.sendStatus(200);
+});
+
+router.options('/finalize', (req, res) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
