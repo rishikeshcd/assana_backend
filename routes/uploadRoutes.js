@@ -76,21 +76,38 @@ router.get('/signature', (req, res) => {
   try {
     const isTemp = req.query.temp === 'true';
     const folder = isTemp ? 'temp-uploads' : (process.env.CLOUDINARY_FOLDER || 'assana-uploads');
+    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
     
     // Generate unique public_id
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const publicId = `image-${uniqueSuffix}`;
+    
+    // If upload preset is configured, use unsigned uploads (simpler, no signature needed)
+    if (uploadPreset) {
+      console.log(`✅ Using unsigned upload with preset: ${uploadPreset}`);
+      return res.json({
+        cloudName: cloudName,
+        apiKey: apiKey,
+        folder: folder,
+        publicId: publicId,
+        uploadPreset: uploadPreset,
+        // No signature/timestamp needed for unsigned uploads
+      });
+    }
     
     // Generate timestamp and signature for signed upload
     const timestamp = Math.round(new Date().getTime() / 1000);
     const params = {
       timestamp: timestamp,
       folder: folder,
-      public_id: publicId,
+      public_id: publicId, // Note: public_id should NOT include folder prefix
     };
     
     // Generate signature using Cloudinary's signing algorithm
+    // Cloudinary automatically sorts parameters alphabetically when signing
     const signature = cloudinary.utils.api_sign_request(params, apiSecret);
+    
+    console.log(`✅ Generated signature for signed upload (folder: ${folder}, publicId: ${publicId})`);
     
     res.json({
       cloudName: cloudName,
@@ -98,11 +115,11 @@ router.get('/signature', (req, res) => {
       timestamp: timestamp,
       signature: signature,
       folder: folder,
-      publicId: publicId,
-      uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET || undefined, // Optional: use upload preset if configured
+      publicId: publicId, // Client should send this WITHOUT folder prefix
+      uploadPreset: undefined,
     });
   } catch (error) {
-    console.error('Error generating upload signature:', error);
+    console.error('❌ Error generating upload signature:', error);
     res.status(500).json({ error: 'Failed to generate upload signature', message: error.message });
   }
 });

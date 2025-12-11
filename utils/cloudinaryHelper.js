@@ -1,8 +1,13 @@
 import { v2 as cloudinary } from 'cloudinary';
 
 // Get cloud name from environment or cloudinary config
-const getCloudName = () => {
+export const getCloudName = () => {
   return process.env.CLOUDINARY_CLOUD_NAME || cloudinary.config().cloud_name;
+};
+
+// Get API key from environment or cloudinary config
+export const getApiKey = () => {
+  return process.env.CLOUDINARY_API_KEY || cloudinary.config().api_key;
 };
 
 /**
