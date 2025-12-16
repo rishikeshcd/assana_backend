@@ -13,7 +13,7 @@ const sanitizeString = (str) => {
   return str.trim();
 };
 
-// ==================== NEW MOM PROGRAM HERO ====================
+// ==================== NEW MOM PROGRAM HxcxcERO ====================
 // GET /api/gut-wellness/new-mom-program/hero
 router.get('/hero', async (req, res) => {
   try {
