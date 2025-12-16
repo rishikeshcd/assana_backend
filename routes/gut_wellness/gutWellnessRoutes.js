@@ -5,6 +5,7 @@ import assanaButtCheckRoutes from './assanaButtCheckRoutes.js';
 import newMomProgramRoutes from './newMomProgramRoutes.js';
 import menopauseProgramRoutes from './menopauseProgramRoutes.js';
 import seniorCitizensProgrammeRoutes from './seniorCitizensProgrammeRoutes.js';
+import wellnessProgrammesRoutes from './wellnessProgrammesRoutes.js'
 
 const router = express.Router();
 
@@ -15,6 +16,8 @@ router.use('/assana-butt-check', assanaButtCheckRoutes);
 router.use('/new-mom-program', newMomProgramRoutes);
 router.use('/menopause-program', menopauseProgramRoutes);
 router.use('/senior-citizens-programme', seniorCitizensProgrammeRoutes);
+router.use('/wellness-programmes', wellnessProgrammesRoutes);
+
 
 // Add more routes here as they are created:
 // router.use('/wellness-programmes', wellnessProgrammesRoutes);

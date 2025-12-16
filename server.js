@@ -70,7 +70,7 @@ app.options('*', cors());
 app.use('/api/home', homeRoutes);
 app.use('/api/about', aboutRoutes);
 app.use('/api/services', servicesRoutes);
-app.use('/api/contact', contactRoutes);
+app.use('/api/contactmain', contactRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/product', productRoutes);
 app.use('/api/common', commonRoutes);
