@@ -1,9 +1,8 @@
 import express from 'express';
-// import NewMomProgramHero from '../../models/gut_wellness/new_mom_program/NewMomProgramHero.js';
-// import NewMomProgramMain from '../../models/gut_wellness/new_mom_program/NewMomProgramMain.js';
+
 import { processImageUpdate } from '../../utils/cloudinaryHelper.js';
 import WellnessProgrammesHero from '../../models/gut_wellness/wellness_programmes/WellnessProgrammeshero.js';
-import WellnessProgrammesMain from '../../models/gut_wellness/wellness_programmes/wellnessProgrammesmain.js';
+import WellnessProgrammesMain from '../../models/gut_wellness/wellness_programmes/WellnessProgrammesMain.js'
 
 
 const router = express.Router();
